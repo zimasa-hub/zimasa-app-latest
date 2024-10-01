@@ -1,16 +1,17 @@
 import ComprehensivePatientHomeScreen from "@/components/ComprehensivePatientHomeScreen";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import CalorieTracker from "@/components/nutrition";
 
 export default function Dashboard ()
 {
 
 
    return (
-    <main className="min-h-screen bg-white">
+    <div className="">
       <ErrorBoundary>
-        <ComprehensivePatientHomeScreen />
+        <CalorieTracker />
       </ErrorBoundary>
-    </main>
+    </div>
    )
     
 }

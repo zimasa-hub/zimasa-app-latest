@@ -27,6 +27,7 @@ const HealthStatusIcons = dynamic(() => import('./HealthStatusIcons'), { ssr: fa
 
 import Sidebar from './SideBar'
 import DashboardSkeleton from './dashboard-skeleton'
+import Link from 'next/link'
 
 // Custom type for beforeinstallprompt event
 type BeforeInstallPromptEvent = Event & {
@@ -295,7 +296,10 @@ export default function ComprehensivePatientHomeScreen() {
     <p className="font-semibold">1,800</p>
     <p className="text-sm text-muted-foreground">Calories</p>
   </div>
-  <Button size="sm" className="mt-auto bg-custom-green">Log</Button>
+  <Link
+   href="/nutrition"
+   className="mt-auto bg-custom-green"
+   >Log</Link>
 </div>
 
 <div className="p-2 shadow-md rounded-md text-center bg-white flex flex-col justify-between">

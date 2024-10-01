@@ -67,7 +67,7 @@ const Popup: React.FC<PopupProps> = ({ onClose }) => {
           </button>
         </div>
         {/* Added max-h for popup content to ensure scroll works */}
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 overflow-y-auto max-h-[70vh] w-[75vw] p-2">
+        <div className="grid grid-cols-2 lg:grid-cols-2 gap-4 overflow-y-auto   max-h-[70vh] w-[75vw] lg:w-auto p-2">
           {services.map((service, index) => (
             <div
               key={index}
