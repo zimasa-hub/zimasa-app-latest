@@ -1,10 +1,24 @@
 import { Button } from "@/components/ui/button"
 import { Home, BookOpen, MessageSquare, Bell, Bookmark, User, LogOut } from 'lucide-react'
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { signOut } from "next-auth/react";
 
 interface SidebarProps {
   isOpen: boolean
 }
+
+
+async function keycloakSessionLogOut() {
+  try {
+    await fetch(`/api/auth/logout`, { method: "GET" });
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+
+
+
 
 export default function Sidebar({ isOpen }: SidebarProps) {
   const navItems = [
@@ -55,7 +69,10 @@ export default function Sidebar({ isOpen }: SidebarProps) {
           </nav>
         </ScrollArea>
         <div className="p-4 border-t">
-          <Button variant="outline" className="w-full justify-start text-base font-medium">
+          <Button variant="outline"
+           onClick={() => {
+            keycloakSessionLogOut().then(() => signOut({ callbackUrl: "/" }));
+          }} className="w-full justify-start text-base font-medium">
             <LogOut className="mr-3 h-5 w-5" />
             Log out
           </Button>

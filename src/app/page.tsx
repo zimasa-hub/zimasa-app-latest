@@ -3,6 +3,7 @@ import ComprehensivePatientHomeScreen from '@/components/ComprehensivePatientHom
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { ServiceProviderHomeScreenComponent } from '@/components/service-provider-home-screen';
 import { LoginScreensComponent } from '@/components/login-screens';
+import AuthStatus from "@/components/AuthStatus"
 
 export const metadata: Metadata = {
   title: 'Zimasa Health Platform',
@@ -25,9 +26,11 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-white">
       <ErrorBoundary>
+
+        {/* <AuthStatus /> */}
         {/* <ComprehensivePatientHomeScreen /> */}
-        {/* <ServiceProviderHomeScreenComponent /> */}
-        <LoginScreensComponent />
+        <ServiceProviderHomeScreenComponent />
+        {/* <LoginScreensComponent /> */}
       </ErrorBoundary>
     </main>
   );
