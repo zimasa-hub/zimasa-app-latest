@@ -298,7 +298,7 @@ export default function ComprehensivePatientHomeScreen() {
   </div>
   <Link
    href="/nutrition"
-   className="mt-auto bg-custom-green"
+   className="mt-auto bg-custom-green text-white rounded-md h-7 "
    >Log</Link>
 </div>
 

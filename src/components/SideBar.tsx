@@ -8,12 +8,12 @@ interface SidebarProps {
 
 export default function Sidebar({ isOpen }: SidebarProps) {
   const navItems = [
-    { icon: Home, label: 'Home' },
+    { icon: User, label: 'Profile' },
     { icon: BookOpen, label: 'Topics' },
     { icon: MessageSquare, label: 'Messages' },
     { icon: Bell, label: 'Notifications' },
     { icon: Bookmark, label: 'Bookmarks' },
-    { icon: User, label: 'Profile' },
+    
   ]
 
   return (
@@ -33,8 +33,8 @@ export default function Sidebar({ isOpen }: SidebarProps) {
             <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></span>
           </div>
           <div className="ml-4">
-            <h2 className="font-semibold text-lg">Sophia Rose</h2>
-            <p className="text-sm text-muted-foreground">UX/UI Designer</p>
+            <h2 className="font-semibold text-lg">Dalton Leyian</h2>
+            <p className="text-sm text-muted-foreground">Zimasa Member</p>
           </div>
         </div>
         <ScrollArea className="flex-grow">

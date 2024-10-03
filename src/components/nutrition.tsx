@@ -131,13 +131,13 @@ export default function CalorieTracker () {
 
       <div className="grid grid-cols-2 gap-2 mb-6">
         <button 
-          className={`py-2 px-4 rounded-full ${activeSection === 'explore' ? 'bg-emerald-500 text-white' : 'bg-white text-emerald-500 border border-emerald-500'}`}
+          className={`py-2 px-4 rounded-full ${activeSection === 'explore' ? 'bg-custom-green text-white' : 'bg-white text-custom-greenbg-custom-green border border-custom-greenbg-custom-green'}`}
           onClick={() => setActiveSection('explore')}
         >
           Explore Meals
         </button>
         <button 
-          className={`py-2 px-4 rounded-full ${activeSection === 'add' ? 'bg-emerald-500 text-white' : 'bg-white text-emerald-500 border border-emerald-500'}`}
+          className={`py-2 px-4 rounded-full ${activeSection === 'add' ? 'bg-custom-green text-white' : 'bg-white text-custom-greenbg-custom-green border border-custom-greenbg-custom-green'}`}
           onClick={() => setActiveSection('add')}
         >
           Add Meals
@@ -148,7 +148,7 @@ export default function CalorieTracker () {
         {(['Breakfast', 'Lunch', 'Dinner', 'Snack'] as MealType[]).map((meal) => (
           <button
             key={meal}
-            className={`py-2 px-3 rounded-lg text-sm ${activeMealType === meal ? 'bg-emerald-500 text-white' : 'bg-white border border-gray-200'}`}
+            className={`py-2 px-3 rounded-lg text-sm ${activeMealType === meal ? 'bg-custom-green text-white' : 'bg-white border border-gray-200'}`}
             onClick={() => setActiveMealType(meal)}
           >
             {meal}

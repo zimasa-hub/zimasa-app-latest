@@ -9,6 +9,7 @@ export default function Layout({ children }: { children: ReactNode }) {
     <div className=" "> {/* Add padding bottom to avoid overlap with BottomNav */}
       {children}
        
+       <BottomNav />
     </div>
   );
 }
