@@ -3,6 +3,7 @@ import { Home, BookOpen, MessageSquare, Bell, Bookmark, User, LogOut } from 'luc
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { signOut } from "next-auth/react";
 
+
 interface SidebarProps {
   isOpen: boolean
 }
@@ -10,7 +11,7 @@ interface SidebarProps {
 
 async function keycloakSessionLogOut() {
   try {
-    await fetch(`/api/auth/logout`, { method: "GET" });
+    await fetch(`/api/auth/signout`, { method: "GET" });
   } catch (err) {
     console.error(err);
   }

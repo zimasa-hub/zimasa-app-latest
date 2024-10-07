@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Eye, EyeOff, ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import SignIn from "./SignIn"
-import SignUp from "./SignUp"
+import SignUpForm from "./SignUp"
 import ConfirmationCode from "./OTPScreen"
 
 type ScreenType = "signin" | "signup" | "confirm"
@@ -18,10 +18,10 @@ export function LoginScreensComponent() {
   const renderScreen = () => {
     switch (currentScreen) {
       case "signin":
-        return <SignIn setCurrentScreen={setCurrentScreen} showPassword={showPassword} togglePasswordVisibility={togglePasswordVisibility} />
-      case "signup":
-        return <SignUp setCurrentScreen={setCurrentScreen} showPassword={showPassword} togglePasswordVisibility={togglePasswordVisibility} />
-      case "confirm":
+        return <SignIn setCurrentScreen={setCurrentScreen}  />
+        case "signup":
+          return <SignUpForm setCurrentScreen={setCurrentScreen} />
+         case "confirm":
         return <ConfirmationCode setCurrentScreen={setCurrentScreen} />
     }
   }

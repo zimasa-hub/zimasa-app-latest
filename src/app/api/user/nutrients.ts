@@ -2,14 +2,13 @@
 
 import type { NextApiRequest, NextApiResponse } from 'next';
 import axios from 'axios';
-import {getAccessToken}  from "@/lib/utils/sessionTokenAccessor"
+import { getValidAccessToken } from '@/lib/utils/auth-utils';
 
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
 
-   let accessToken =await getAccessToken();
+  let accessToken = await getValidAccessToken();
    
-
   try {
     if (req.method === 'GET') {
         try {

@@ -28,7 +28,7 @@ const BottomNav = () => {
         boxShadow: "0 8px 20px rgba(0, 255, 255, 0.4)",
       }}
     >
-      <ul className="grid grid-cols-5 justify-items-center items-center py-2 relative px-4">
+      <ul className=" grid grid-cols-5 justify-items-center items-center py-2 relative px-4">
         <li className="col-span-1">
           <Link
             href="/dashboard"
