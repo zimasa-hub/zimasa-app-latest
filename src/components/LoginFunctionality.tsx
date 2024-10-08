@@ -33,6 +33,7 @@ const LoginFunctionality: React.FC<LoginFunctionalityProps> = ({ name }) => {
     );
   }
 
+  //change this so that when session expires user gets logged out
   if (isLoggedIn && name) {
     return (
       <ErrorBoundary>

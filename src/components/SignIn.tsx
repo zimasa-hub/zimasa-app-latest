@@ -60,7 +60,7 @@ export default function SignIn({ setCurrentScreen }: {
   }
 
   return (
-    <div className="relative h-screen">
+    <div className="relative min-h-screen">
       <div className="absolute inset-0 bg-teal-500 clip-diagonal"></div>
       <div className="relative z-10 flex flex-col h-full p-6">
         <button className="text-white" onClick={() => {}}>

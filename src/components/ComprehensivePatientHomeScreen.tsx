@@ -30,14 +30,10 @@ import Sidebar from './SideBar'
 import DashboardSkeleton from './dashboard-skeleton'
 import Link from 'next/link'
 import { UserNameProps } from '@/lib/interfaces/meals/interfaces';
+import axios from 'axios';
+import AllAppointmentsView from './all-appointments-view';
 
-async function keycloakSessionLogOut() {
-  try {
-    await fetch(`/api/auth/logout`, { method: "GET" });
-  } catch (err) {
-    console.error(err);
-  }
-}
+
 
 
 
@@ -56,6 +52,22 @@ type Appointment = {
   time: string
   dependent?: string
   // add other appointment properties here
+  id?: number
+  service: {
+    name: string
+    providerUser: {
+      member: {
+        firstName: string
+        lastName: string
+      }
+    }
+}
+
+appointmentDate: string
+  startTime: string
+  scheduleType: {
+    name: string
+  }
 }
 
 
@@ -75,6 +87,7 @@ const ComprehensivePatientHomeScreen: React.FC<UserNameProps> = ({ name }) => {
   const [isBrowseHealthServicesOpen, setIsBrowseHealthServicesOpen] = useState(false)
   const [isApplyForHealthcareLoanOpen, setIsApplyForHealthcareLoanOpen] = useState(false)
   const [isMakePaymentOpen, setIsMakePaymentOpen] = useState(false)
+  const [isAllAppointmentsOpen, setIsAllAppointmentsOpen] = useState(false)
 
   const [isHydrated, setIsHydrated] = useState(false); // Track hydration status
 
@@ -105,6 +118,41 @@ const ComprehensivePatientHomeScreen: React.FC<UserNameProps> = ({ name }) => {
       window.removeEventListener('appinstalled', appInstalledHandler)
     }
   }, [])
+
+  const [appointments, setAppointments] = useState<Appointment[]>([])
+
+  
+    const fetchAppointments = async () => {
+      try {
+        const currentDate = new Date().toISOString().split('T')[0]
+        const response = await axios.get(`/api/user/book-appointment?localDate=${currentDate}`)
+        setAppointments(response.data.slice(0, 2)) // Only take the first two appointments
+      } catch (error) {
+        console.error('Error fetching appointments:', error)
+      }
+    }
+    useEffect(() => {
+
+    fetchAppointments()
+  }, [])
+
+  const formatAppointmentDate = (dateString: string, timeString: string) => {
+    const date = new Date(dateString + 'T' + timeString)
+    const today = new Date()
+    const tomorrow = new Date(today)
+    tomorrow.setDate(tomorrow.getDate() + 1)
+
+    if (date.toDateString() === today.toDateString()) {
+      return `Today, ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+    } else if (date.toDateString() === tomorrow.toDateString()) {
+      return `Tomorrow, ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+    } else {
+      return `${date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}, ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+    }
+  }
+
+  
+  
 
   const handleInstallClick = () => {
     if (deferredPrompt) {
@@ -214,7 +262,8 @@ const ComprehensivePatientHomeScreen: React.FC<UserNameProps> = ({ name }) => {
           <span className="sr-only">Notifications</span>
         </Button>
       </header>
-      <Sidebar isOpen={isSidebarOpen} />
+      <Sidebar isOpen={isSidebarOpen} 
+        name={name}/>
       {isSidebarOpen && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 z-40"
@@ -243,52 +292,54 @@ const ComprehensivePatientHomeScreen: React.FC<UserNameProps> = ({ name }) => {
 
     </Card>
 
+    {/*  Appointments Section*/}
+
     <Card className="mb-4">
-          <CardHeader>
-            <CardTitle className="text-lg">Upcoming Appointments</CardTitle>
-          </CardHeader>
-          <CardContent className="grid gap-4  p-4 lg:p-8 grid-cols-1 lg:grid-cols-12 justify-center items-center">
-
-  {/* Upcoming Appointments */}
-  <div className="grid grid-cols-1 lg:grid-cols-12 items-start gap-4 w-full col-span-12">
-    
-    <ul className="space-y-4 lg:col-span-9">
-      <li className="grid grid-cols-12 items-center gap-4 mb-1">
-        <div className="col-span-8 flex items-center gap-4">
-          <Calendar className="h-6 w-6 text-teal-600" />
-          <div className="flex flex-col">
-            <span className="font-medium">Dr. Smith - Checkup</span>
-            <p className="text-sm text-muted-foreground">Tomorrow, 10:00 AM</p>
-          </div>
+      <CardHeader>
+        <CardTitle className="text-lg">Upcoming Appointments</CardTitle>
+      </CardHeader>
+      <CardContent className="grid gap-4 p-4 lg:p-8 grid-cols-1 lg:grid-cols-12 justify-center items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-12 items-start gap-4 w-full col-span-12">
+          <ul className="space-y-4 lg:col-span-9">
+            {appointments.map((appointment) => (
+              <li key={appointment.id} className="grid grid-cols-12 items-center gap-4 mb-1">
+                <div className="col-span-8 flex items-center gap-4">
+                  <Calendar className="h-6 w-6 text-teal-600" />
+                  <div className="flex flex-col">
+                    <span className="font-medium">
+                      Dr. {appointment.service.providerUser.member.firstName} {appointment.service.providerUser.member.lastName} - {appointment.service.name}
+                    </span>
+                    <p className="text-sm text-muted-foreground">
+                      {formatAppointmentDate(appointment.appointmentDate, appointment.startTime)}
+                    </p>
+                  </div>
+                </div>
+                <Badge variant="secondary" className="col-span-4 ml-auto">
+                  {appointment.scheduleType.name}
+                </Badge>
+              </li>
+            ))}
+            {appointments.length === 0 && (
+              <li className="text-center text-muted-foreground">No upcoming appointments</li>
+            )}
+          </ul>
         </div>
-        <Badge variant="secondary" className="col-span-4 ml-auto">Telehealth</Badge>
-      </li>
-
-      <li className="grid grid-cols-12 items-center gap-4 mb-1">
-        <div className="col-span-8 flex items-center gap-4">
-          <Calendar className="h-6 w-6 text-teal-600" />
-          <div className="flex flex-col">
-            <span className="font-medium">Dr. Johnson - Dental Cleaning</span>
-            <p className="text-sm text-muted-foreground">Next Week, Tuesday 2:00 PM</p>
-          </div>
+        <div className="w-full col-span-12 flex justify-center items-center text-center lg:justify-start">
+          <Button onClick={async () => {
+    setIsAllAppointmentsOpen(true); // This sets the modal or component to open
+    // await fetchAppointments();      // Call the function to fetch appointments
+  }}
+           className="w-full lg:w-auto h-10 items-center text-center justify-center rounded-md bg-teal-600 hover:bg-teal-700 text-white">
+            View All Appointments
+          </Button>
         </div>
-        <Badge variant="secondary" className="col-span-4 ml-auto">In-person</Badge>
-      </li>
-    </ul>
-    
-  </div>
+      </CardContent>
+    </Card>
 
-  {/* View All Appointments Button */}
-  <div className="w-full col-span-12 flex justify-center lg:justify-start">
-    <Button className="w-full lg:w-auto bg-teal-600 hover:bg-teal-700 text-white">View All Appointments</Button>
-  </div>
-
-</CardContent>
-
-
-
-
-        </Card>
+    <AllAppointmentsView 
+        isOpen={isAllAppointmentsOpen} 
+        onClose={() => setIsAllAppointmentsOpen(false)} 
+      />
 
 
         {/* Middle Section - Health and Wellness Tracking */}
@@ -314,7 +365,7 @@ const ComprehensivePatientHomeScreen: React.FC<UserNameProps> = ({ name }) => {
   </div>
   <Link
    href="/nutrition"
-   className="mt-auto bg-custom-green text-white rounded-md h-7 "
+   className="mt-auto bg-custom-green text-white rounded-md h-8 "
    >Log</Link>
 </div>
 
@@ -468,14 +519,14 @@ const ComprehensivePatientHomeScreen: React.FC<UserNameProps> = ({ name }) => {
       </Dialog>
 
       {/* Book Appointment Modal */}
-      <Dialog open={isBookAppointmentOpen} onOpenChange={setIsBookAppointmentOpen}>
+      {/* <Dialog open={isBookAppointmentOpen} onOpenChange={setIsBookAppointmentOpen}>
         <DialogContent className="sm:max-w-[90vw] sm:max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Book Appointment</DialogTitle>
           </DialogHeader>
           <BookAppointmentScreen />
         </DialogContent>
-      </Dialog>
+      </Dialog> */}
 
       {/* View Medical Records Modal */}
       <Dialog open={isViewMedicalRecordsOpen} onOpenChange={setIsViewMedicalRecordsOpen}>

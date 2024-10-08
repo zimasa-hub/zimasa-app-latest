@@ -1,0 +1,124 @@
+import BookAppointmentScreen from '@/components/book-appointment-screen'
+import { getValidAccessToken } from '@/lib/utils/auth-utils'
+import { DoctorsDataResponse } from '@/lib/interfaces/providers/doctors'
+import { SetDynamicRoute } from '@/lib/utils/setDynamicRoute'
+import ErrorBoundary from '@/components/ErrorBoundary'
+import axios from 'axios'
+import { jwtDecode } from 'jwt-decode';
+
+interface ScheduleType {
+  id: number
+  name: string
+  description: string
+  slotDurationMinutes: number
+  breakDurationMinutes: number
+}
+
+interface DecodedToken {
+  sub: string
+  // Add other token claims as needed
+}
+
+async function getDoctorsData(accessToken: string): Promise<DoctorsDataResponse> {
+  const url = process.env.NEXT_PUBLIC_DOCTORS
+
+  if (!url) {
+    throw new Error("NEXT_PUBLIC_DOCTORS environment variable is not set")
+  }
+
+  const resp = await axios.get<DoctorsDataResponse>(url, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json'
+    },
+    data: {},  
+    params: {},  
+  })
+
+  if (resp.status !== 200) {
+    throw new Error(`Failed to fetch data. Status: ${resp.status}`)
+  }
+
+  return resp.data
+}
+
+async function getScheduleTypes(accessToken: string): Promise<ScheduleType[]> {
+  const url = process.env.NEXT_PUBLIC_SCHEDULE_TYPES
+
+  if (!url) {
+    throw new Error("NEXT_PUBLIC_SCHEDULE_TYPES environment variable is not set")
+  }
+
+  const resp = await axios.get<{ content: ScheduleType[] }>(url, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json'
+    },
+  })
+
+  if (resp.status !== 200) {
+    throw new Error(`Failed to fetch schedule types. Status: ${resp.status}`)
+  }
+
+  return resp.data.content
+}
+
+export default async function Home() {
+  let doctorsData: DoctorsDataResponse | null = null
+  let scheduleTypes: ScheduleType[] | null = null
+  let currentMemberId: string | null = null
+  let error: string | null = null
+
+  try {
+    const accessToken = await getValidAccessToken()
+    const decodedToken = jwtDecode<DecodedToken>(accessToken)
+    currentMemberId = decodedToken.sub
+
+    const [doctors, types] = await Promise.all([
+      getDoctorsData(accessToken),
+      getScheduleTypes(accessToken)
+    ])
+    doctorsData = doctors
+    scheduleTypes = types
+  } catch (err) {
+    console.error("Error in Home component:", err)
+    error = err instanceof Error ? err.message : String(err)
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">An error occurred</h1>
+          <p className="text-red-500">{error}</p>
+          <a href="/" className="mt-4 inline-block px-4 py-2 bg-[#008080] text-white rounded hover:bg-[#008080]">
+            Return to Login
+          </a>
+        </div>
+      </div>
+    )
+  }
+
+  if (!doctorsData || !scheduleTypes || !currentMemberId) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">Loading...</h1>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <main className="min-h-screen bg-white">
+      <SetDynamicRoute />
+      <ErrorBoundary>
+        <BookAppointmentScreen 
+          doctors={doctorsData} 
+          scheduleTypes={scheduleTypes} 
+          currentMemberId={currentMemberId}
+        />
+      </ErrorBoundary>
+    </main>
+  )
+}

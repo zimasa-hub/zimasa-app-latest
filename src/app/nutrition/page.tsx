@@ -42,7 +42,7 @@ export default async function Dashboard() {
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-4">An error occurred</h1>
           <p className="text-red-500">{error}</p>
-          <a href="/auth/signin" className="mt-4 inline-block px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+          <a href="/" className="mt-4 inline-block px-4 py-2 bg-[#008080] text-white rounded hover:bg-[#008080]">
             Return to Login
           </a>
         </div>

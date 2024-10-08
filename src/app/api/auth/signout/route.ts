@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { decrypt } from '@/lib/utils/encryption';
 
-export async function GET(request: Request) {
+async function handleLogout() {
   try {
     const sessionToken = cookies().get('session_token')?.value;
 
@@ -20,7 +20,7 @@ export async function GET(request: Request) {
     // Clear the session cookie
     cookies().set('session_token', '', {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      // secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
       expires: new Date(0),
       path: '/',
@@ -59,4 +59,12 @@ export async function GET(request: Request) {
     console.error('Logout error:', error);
     return NextResponse.json({ message: 'Logout failed. Please try again.' }, { status: 500 });
   }
+}
+
+export async function GET() {
+  return handleLogout();
+}
+
+export async function POST() {
+  return handleLogout();
 }

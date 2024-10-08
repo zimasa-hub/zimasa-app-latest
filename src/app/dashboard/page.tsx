@@ -1,6 +1,8 @@
 import ComprehensivePatientHomeScreen from "@/components/ComprehensivePatientHomeScreen";
 import ErrorBoundary from "@/components/ErrorBoundary"
+import { ServiceProviderHomeScreenComponent } from "@/components/service-provider-home-screen";
 import { getValidAccessToken, getServerSession } from '@/lib/utils/auth-utils';
+import { SetDynamicRoute } from "@/lib/utils/setDynamicRoute";
 
 export default async function Dashboard() {
   let name: string | null = null;
@@ -21,8 +23,10 @@ export default async function Dashboard() {
 
   return (
     <main className="min-h-screen bg-white">
+      <SetDynamicRoute />
       <ErrorBoundary>
         <ComprehensivePatientHomeScreen name={name} />
+        {/* <ServiceProviderHomeScreenComponent /> */}
       </ErrorBoundary>
     </main>
   );
