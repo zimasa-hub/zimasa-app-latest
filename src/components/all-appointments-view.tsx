@@ -14,6 +14,7 @@ type Appointment = {
       member: {
         firstName: string
         lastName: string
+        username: string
       }
     }
     location: string
@@ -41,7 +42,9 @@ export default function AllAppointmentsView({ isOpen, onClose }: AllAppointments
       try {
         const currentDate = new Date().toISOString().split('T')[0]
         const response = await axios.get(`/api/user/book-appointment?localDate=${currentDate}`)
+
         setAppointments(response.data)
+        
       } catch (error) {
         console.error('Error fetching appointments:', error)
       }
@@ -95,7 +98,7 @@ export default function AllAppointmentsView({ isOpen, onClose }: AllAppointments
                     {appointment.status}
                   </Badge>
                   <h3 className="text-base sm:text-lg font-semibold mb-1">
-                    Dr. {appointment.service.providerUser.member.firstName} {appointment.service.providerUser.member.lastName}
+                    Dr. {appointment.service.providerUser.member.username}
                   </h3>
                   <p className="text-sm text-muted-foreground mb-3">{appointment.service.name}</p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">

@@ -7,7 +7,7 @@ export async function POST(request: Request) {
     const appointmentData = await request.json()
 
     // You should implement proper authentication to get the token
-    let accessToken = await getValidAccessToken();
+    const accessToken = await getValidAccessToken();
 
     const apiEndpoint = process.env.NEXT_PUBLIC_BOOK_APPOINTMENTS;
 

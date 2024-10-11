@@ -59,6 +59,7 @@ type Appointment = {
       member: {
         firstName: string
         lastName: string
+        username:string
       }
     }
 }
@@ -307,7 +308,8 @@ const ComprehensivePatientHomeScreen: React.FC<UserNameProps> = ({ name }) => {
                   <Calendar className="h-6 w-6 text-teal-600" />
                   <div className="flex flex-col">
                     <span className="font-medium">
-                      Dr. {appointment.service.providerUser.member.firstName} {appointment.service.providerUser.member.lastName} - {appointment.service.name}
+                      Dr. {appointment.service.providerUser.member.username} 
+                     
                     </span>
                     <p className="text-sm text-muted-foreground">
                       {formatAppointmentDate(appointment.appointmentDate, appointment.startTime)}

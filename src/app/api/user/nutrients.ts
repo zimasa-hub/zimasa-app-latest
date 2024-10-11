@@ -7,7 +7,7 @@ import { getValidAccessToken } from '@/lib/utils/auth-utils';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
 
-  let accessToken = await getValidAccessToken();
+  const accessToken = await getValidAccessToken();
    
   try {
     if (req.method === 'GET') {

@@ -46,7 +46,7 @@ export async function POST(request: Request) {
       const nowTimeStamp = Math.floor(Date.now() / 1000);
       const decoded = jwtDecode(data.access_token) as KeycloakJwtPayload;
 
-      let token = {
+      const token = {
         decoded,
         access_token: data.access_token,
         id_token: data.id_token,

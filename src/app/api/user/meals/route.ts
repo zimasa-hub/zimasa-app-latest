@@ -4,7 +4,7 @@ import { getValidAccessToken } from '@/lib/utils/auth-utils';
 
 export async function POST(req: NextRequest) {
   try {
-    let accessToken = await getValidAccessToken();
+    const accessToken = await getValidAccessToken();
 
     const formData = await req.formData();
 

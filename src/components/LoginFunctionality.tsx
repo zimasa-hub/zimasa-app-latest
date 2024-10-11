@@ -38,7 +38,8 @@ const LoginFunctionality: React.FC<LoginFunctionalityProps> = ({ name }) => {
     return (
       <ErrorBoundary>
         {/* <AuthStatus name={name} onLogout={handleLogout} /> */}
-        <ComprehensivePatientHomeScreen name={name} />
+        {/* <ComprehensivePatientHomeScreen name={name} /> */}
+        <ServiceProviderHomeScreenComponent />
       </ErrorBoundary>
     );
   }

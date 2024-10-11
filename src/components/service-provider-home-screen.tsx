@@ -10,10 +10,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import AddNewService from "./add-new-service"
+// import AddNewService from "./add-new-service"
 import ComposeNewMessage from "./compose-new-message"
 import DetailedAnalytics from "./detailed-analytics"
-import AddNewAppointmentTask from "./add-new-appointment-task"
+// import AddNewAppointmentTask from "./add-new-appointment-task"
 import EmergencyAlertDetails from "./emergency-alert-details"
 
 export function ServiceProviderHomeScreenComponent() {
@@ -24,9 +24,13 @@ export function ServiceProviderHomeScreenComponent() {
   const [showAddNewAppointmentTask, setShowAddNewAppointmentTask] = useState(false)
   const [showEmergencyAlertDetails, setShowEmergencyAlertDetails] = useState(false)
 
-  if (showAddNewService) {
-    return <AddNewService onClose={() => setShowAddNewService(false)} />
-  }
+  // if (showAddNewService) {
+  //   return <AddNewService onClose={() => setShowAddNewService(false)} />
+  // }
+
+  // if (showAddNewAppointmentTask) {
+  //   return <AddNewAppointmentTask onClose={() => setShowAddNewAppointmentTask(false)} />
+  // }
 
   if (showComposeNewMessage) {
     return <ComposeNewMessage onClose={() => setShowComposeNewMessage(false)} />
@@ -36,9 +40,7 @@ export function ServiceProviderHomeScreenComponent() {
     return <DetailedAnalytics onClose={() => setShowDetailedAnalytics(false)} />
   }
 
-  if (showAddNewAppointmentTask) {
-    return <AddNewAppointmentTask onClose={() => setShowAddNewAppointmentTask(false)} />
-  }
+  
 
   if (showEmergencyAlertDetails) {
     return <EmergencyAlertDetails onClose={() => setShowEmergencyAlertDetails(false)} />
