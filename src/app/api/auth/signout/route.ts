@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { decrypt } from '@/lib/utils/encryption';
+import { logAuthEvent } from '@/lib/utils/auth-utils';
 
 async function handleLogout() {
   try {
@@ -53,6 +54,9 @@ async function handleLogout() {
         return NextResponse.json({ message: 'Logged out locally, but Keycloak logout failed' }, { status: 200 });
       }
     }
+
+    // Log event of logging out
+await logAuthEvent('logout', { sessionToken: sessionToken });
 
     return NextResponse.json({ message: 'Logged out successfully' }, { status: 200 });
   } catch (error) {

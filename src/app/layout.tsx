@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
-import BottomNav from "./BottomNavigationBar";
+import BottomNav from "@/app/NavBars/service-provider-bottomBar";
 import { SessionProvider } from "next-auth/react";
 import SessionProviderWrapper from "@/lib/utils/sessionProviderWrapper"
 

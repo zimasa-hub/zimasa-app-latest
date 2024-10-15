@@ -6,8 +6,8 @@ export async function POST(request: Request) {
   try {
     const appointmentData = await request.json()
 
-    // You should implement proper authentication to get the token
-    const accessToken = await getValidAccessToken();
+   
+    let accessToken = await getValidAccessToken();
 
     const apiEndpoint = process.env.NEXT_PUBLIC_BOOK_APPOINTMENTS;
 
@@ -50,7 +50,7 @@ export async function POST(request: Request) {
 // Handle GET request with current date
 export async function GET() {
   try {
-    const accessToken = await getValidAccessToken();
+    let accessToken = await getValidAccessToken();
 
     // Get the current date in 'YYYY-MM-DD' format
     const currentDate = new Date().toISOString().split('T')[0]; // Format as 'YYYY-MM-DD'

@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Home, MessageCircle, Bell, User, HelpCircle, Grid } from "lucide-react";
-import Popup from "@/components/popup";
+import Popup from "@/components/consumer-popup";
 
 const BottomNav = () => {
   const pathname = usePathname();

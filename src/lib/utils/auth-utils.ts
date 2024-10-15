@@ -70,3 +70,25 @@ export async function getServerSession(): Promise<Session | null> {
   const session = global.sessions.get(sessionToken);
   return session || null;
 }
+
+//update this method later to send this evemt maybe to a logging service
+export async function logAuthEvent(event: string, details: any) {
+  try {
+    const response = await fetch('/api/auth/_log', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ event, details, timestamp: new Date().toISOString() }),
+    
+    });
+
+    console.log("LOGGING :", response.body)
+    
+    if (!response.ok) {
+      throw new Error('Failed to log auth event');
+    }
+  } catch (error) {
+    console.error('Error logging auth event:', error);
+  }
+}

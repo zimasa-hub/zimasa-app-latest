@@ -26,7 +26,7 @@ import MakePaymentScreen from './make-payment-screen'
 import dynamic from 'next/dynamic';
 const HealthStatusIcons = dynamic(() => import('./HealthStatusIcons'), { ssr: false });
 
-import Sidebar from './SideBar'
+import Sidebar from '../app/NavBars/consumer-sideBar'
 import DashboardSkeleton from './dashboard-skeleton'
 import Link from 'next/link'
 import { UserNameProps } from '@/lib/interfaces/meals/interfaces';
@@ -328,7 +328,7 @@ const ComprehensivePatientHomeScreen: React.FC<UserNameProps> = ({ name }) => {
         </div>
         <div className="w-full col-span-12 flex justify-center items-center text-center lg:justify-start">
           <Button onClick={async () => {
-    setIsAllAppointmentsOpen(true); // This sets the modal or component to open
+    setIsAllAppointmentsOpen(true); // This sets the  component to open
     // await fetchAppointments();      // Call the function to fetch appointments
   }}
            className="w-full lg:w-auto h-10 items-center text-center justify-center rounded-md bg-teal-600 hover:bg-teal-700 text-white">

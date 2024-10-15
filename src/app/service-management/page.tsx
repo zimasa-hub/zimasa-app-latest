@@ -1,71 +1,59 @@
-import BookAppointmentScreen from '@/components/book-appointment-screen'
 import { getValidAccessToken } from '@/lib/utils/auth-utils'
-import { DoctorsDataResponse } from '@/lib/interfaces/providers/doctors'
 import { SetDynamicRoute } from '@/lib/utils/setDynamicRoute'
 import ErrorBoundary from '@/components/ErrorBoundary'
+import AddNewServiceComponent from '@/components/service-provider-components/add-new-service'
 import axios from 'axios'
-import { jwtDecode } from 'jwt-decode';
-
-interface ScheduleType {
-  id: number
-  name: string
-  description: string
-  slotDurationMinutes: number
-  breakDurationMinutes: number
-}
+import { jwtDecode } from 'jwt-decode'
+import { PaymentMethod, PageableResponse, ServiceType } from '@/lib/interfaces/services/services'
 
 interface DecodedToken {
   sub: string
   // Add other token claims as needed
 }
 
-async function getDoctorsData(accessToken: string): Promise<DoctorsDataResponse> {
-  const url = process.env.NEXT_PUBLIC_DOCTORS
-
+async function getPaymentMethods(accessToken: string): Promise<PaymentMethod[]> {
+  const url = process.env.NEXT_PUBLIC_GET_PAYMENT_METHODS
   if (!url) {
-    throw new Error("NEXT_PUBLIC_DOCTORS environment variable is not set")
+    throw new Error("NEXT_PUBLIC_API_URL environment variable is not set")
   }
 
-  const resp = await axios.get<DoctorsDataResponse>(url, {
+  const resp = await axios.get<PaymentMethod[]>(url, {
     headers: {
       Authorization: `Bearer ${accessToken}`,
       'Content-Type': 'application/json'
-    },
-    data: {},  
-    params: {},  
+    }
   })
 
   if (resp.status !== 200) {
-    throw new Error(`Failed to fetch data. Status: ${resp.status}`)
+    throw new Error(`Failed to fetch payment methods. Status: ${resp.status}`)
   }
 
   return resp.data
 }
 
-async function getScheduleTypes(accessToken: string): Promise<ScheduleType[]> {
-  const url = process.env.NEXT_PUBLIC_SCHEDULE_TYPES
-
+async function getServiceTypes(accessToken: string): Promise<PageableResponse<ServiceType>> {
+  const url = process.env.NEXT_PUBLIC_GET_SERVICE_TYPES
   if (!url) {
-    throw new Error("NEXT_PUBLIC_SCHEDULE_TYPES environment variable is not set")
+    throw new Error("NEXT_PUBLIC_API_URL environment variable is not set")
   }
 
-  const resp = await axios.get<{ content: ScheduleType[] }>(url, {
+  const resp = await axios.get<PageableResponse<ServiceType>>(url, {
     headers: {
       Authorization: `Bearer ${accessToken}`,
       'Content-Type': 'application/json'
-    },
+    }
   })
 
   if (resp.status !== 200) {
-    throw new Error(`Failed to fetch schedule types. Status: ${resp.status}`)
+    throw new Error(`Failed to fetch service types. Status: ${resp.status}`)
   }
 
-  return resp.data.content
+  return resp.data
 }
 
 export default async function Home() {
-  let doctorsData: DoctorsDataResponse | null = null
-  let scheduleTypes: ScheduleType[] | null = null
+  let paymentMethods: PaymentMethod[] | null = null
+  let serviceTypes: ServiceType[] | null = null
   let currentMemberId: string | null = null
   let error: string | null = null
 
@@ -74,12 +62,13 @@ export default async function Home() {
     const decodedToken = jwtDecode<DecodedToken>(accessToken)
     currentMemberId = decodedToken.sub
 
-    const [doctors, types] = await Promise.all([
-      getDoctorsData(accessToken),
-      getScheduleTypes(accessToken)
+    const [paymentMethodsData, serviceTypesData] = await Promise.all([
+      getPaymentMethods(accessToken),
+      getServiceTypes(accessToken)
     ])
-    doctorsData = doctors
-    scheduleTypes = types
+
+    paymentMethods = paymentMethodsData
+    serviceTypes = serviceTypesData.content
   } catch (err) {
     console.error("Error in Home component:", err)
     error = err instanceof Error ? err.message : String(err)
@@ -92,14 +81,14 @@ export default async function Home() {
           <h1 className="text-2xl font-bold mb-4">An error occurred</h1>
           <p className="text-red-500">{error}</p>
           <a href="/" className="mt-4 inline-block px-4 py-2 bg-[#008080] text-white rounded hover:bg-[#008080]">
-           Refresh
+            Refresh
           </a>
         </div>
       </div>
     )
   }
 
-  if (!doctorsData || !scheduleTypes || !currentMemberId) {
+  if (!paymentMethods || !serviceTypes || !currentMemberId) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
@@ -113,9 +102,9 @@ export default async function Home() {
     <main className="min-h-screen bg-white">
       <SetDynamicRoute />
       <ErrorBoundary>
-        <BookAppointmentScreen 
-          doctors={doctorsData} 
-          scheduleTypes={scheduleTypes} 
+        <AddNewServiceComponent 
+          paymentMethods={paymentMethods}
+          serviceTypes={serviceTypes}
           currentMemberId={currentMemberId}
         />
       </ErrorBoundary>

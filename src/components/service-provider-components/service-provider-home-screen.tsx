@@ -10,11 +10,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-// import AddNewService from "./add-new-service"
-import ComposeNewMessage from "./compose-new-message"
-import DetailedAnalytics from "./detailed-analytics"
+import ComposeNewMessage from "../compose-new-message"
+import DetailedAnalytics from "../detailed-analytics"
 // import AddNewAppointmentTask from "./add-new-appointment-task"
-import EmergencyAlertDetails from "./emergency-alert-details"
+import EmergencyAlertDetails from "../emergency-alert-details"
+import AddNewService from './add-new-service'
 
 export function ServiceProviderHomeScreenComponent() {
   const [showEmergencyAlert, setShowEmergencyAlert] = useState(true)
@@ -24,9 +24,9 @@ export function ServiceProviderHomeScreenComponent() {
   const [showAddNewAppointmentTask, setShowAddNewAppointmentTask] = useState(false)
   const [showEmergencyAlertDetails, setShowEmergencyAlertDetails] = useState(false)
 
-  // if (showAddNewService) {
-  //   return <AddNewService onClose={() => setShowAddNewService(false)} />
-  // }
+  if (showAddNewService) {
+    return <AddNewService onClose={() => setShowAddNewService(false)} />
+  }
 
   // if (showAddNewAppointmentTask) {
   //   return <AddNewAppointmentTask onClose={() => setShowAddNewAppointmentTask(false)} />

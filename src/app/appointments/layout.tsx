@@ -1,6 +1,6 @@
 // app/appointments/layout.tsx
 import { ReactNode } from 'react';
-import BottomNav from '../BottomNavigationBar';
+import BottomNav from '@/app/NavBars/consumer-bottomBar';
 
 
 

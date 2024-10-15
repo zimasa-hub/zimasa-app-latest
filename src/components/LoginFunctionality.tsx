@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { LoginScreensComponent } from "./login-screens";
 import AuthStatus from "./AuthStatus";
 import ErrorBoundary from "./ErrorBoundary";
-import { ServiceProviderHomeScreenComponent } from "./service-provider-home-screen";
+import { ServiceProviderHomeScreenComponent } from "./service-provider-components/service-provider-home-screen";
 import ComprehensivePatientHomeScreen from "./ComprehensivePatientHomeScreen";
 import { UserNameProps } from "@/lib/interfaces/meals/interfaces";
 

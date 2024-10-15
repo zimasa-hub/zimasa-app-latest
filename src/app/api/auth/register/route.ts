@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import KcAdminClient from '@keycloak/keycloak-admin-client'
+import { logAuthEvent } from '@/lib/utils/auth-utils'
 
 const kcAdminClient = new KcAdminClient({
   baseUrl: process.env.KEYCLOAK_BASE_URL,
@@ -45,6 +46,8 @@ export async function POST(request: Request) {
     } catch (emailError) {
       console.error('Failed to send verification email:', emailError)
     }
+
+    await logAuthEvent('register', { username: username });
 
     return NextResponse.json({ 
       message: emailSent 

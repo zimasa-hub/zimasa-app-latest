@@ -3,6 +3,7 @@ import { jwtDecode } from 'jwt-decode';
 import { encrypt } from '@/lib/utils/encryption';
 import { cookies } from 'next/headers';
 import { v4 as uuidv4 } from 'uuid';
+import { logAuthEvent } from '@/lib/utils/auth-utils';
 
 interface KeycloakJwtPayload {
   realm_access: {
@@ -80,13 +81,21 @@ export async function POST(request: Request) {
         path: '/',
       });
 
-      return NextResponse.json({ 
-        message: 'Sign-in successful',
-        user: {
-          name: token.decoded.name,
-          email: token.decoded.email,
-        },
-      });
+
+      await logAuthEvent('login', { username: username });
+
+  return NextResponse.json({ 
+    message: 'Sign-in successful',
+    user: {
+      name: token.decoded.name,
+      email: token.decoded.email,
+    },
+  });
+
+     
+
+      
+
     } else {
       return NextResponse.json({ message: data.error_description || 'Invalid credentials' }, { status: response.status });
     }
