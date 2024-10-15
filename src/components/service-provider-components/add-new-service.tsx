@@ -13,6 +13,7 @@ import axios from 'axios'
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Calendar } from "@/components/ui/calendar"
 import { format } from "date-fns"
+import { toast } from "@/hooks/use-toast"
 
 interface FormData {
   serviceType: number
@@ -47,10 +48,10 @@ interface ServiceCategory {
 interface AddNewServiceComponentProps {
   serviceTypes: ServiceType[]
   paymentMethods: { id: number; method: string }[]
-  currentMemberId: string | null 
+  providerUserId: string | null
 }
 
-export default function AddNewServiceComponent({ serviceTypes, paymentMethods, currentMemberId }: AddNewServiceComponentProps) {
+export default function AddNewServiceComponent({ serviceTypes, paymentMethods, providerUserId }: AddNewServiceComponentProps) {
   const [formData, setFormData] = useState<FormData>({
     serviceType: 0,
     serviceDescription: "",
@@ -109,7 +110,8 @@ export default function AddNewServiceComponent({ serviceTypes, paymentMethods, c
     }))
   }
 
-  const handleDaySelect = (day: string) => {
+  const handleDaySelect = (e: React.MouseEvent, day: string) => {
+    e.preventDefault()
     setSelectedDay(day === selectedDay ? null : day)
   }
 
@@ -120,7 +122,9 @@ export default function AddNewServiceComponent({ serviceTypes, paymentMethods, c
     }))
   }
 
-  const handleAddAvailability = () => {
+ 
+  const handleAddAvailability = (e: React.MouseEvent) => {
+    e.preventDefault() 
     if (selectedDay && startTime && endTime) {
       setFormData(prevState => ({
         ...prevState,
@@ -135,23 +139,72 @@ export default function AddNewServiceComponent({ serviceTypes, paymentMethods, c
     }
   }
 
-  const handleRemoveAvailability = (index: number) => {
+
+  const handleRemoveAvailability = (e: React.MouseEvent, index: number) => {
+    e.preventDefault() 
     setFormData(prevState => ({
       ...prevState,
       availableDays: prevState.availableDays.filter((_, i) => i !== index)
     }))
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log("Form submitted:", formData)
-    // Add your form submission logic here
+    try {
+      const dayMapping: { [key: string]: string } = {
+        'Mon': 'MONDAY',
+        'Tue': 'TUESDAY',
+        'Wed': 'WEDNESDAY',
+        'Thu': 'THURSDAY',
+        'Fri': 'FRIDAY',
+        'Sat': 'SATURDAY',
+        'Sun': 'SUNDAY'
+      }
+
+      const payload = {
+        serviceCategoryId: parseInt(formData.serviceCategory),
+        description: formData.serviceDescription,
+        maximumCapacity: parseInt(formData.maxCapacity),
+        price: parseFloat(formData.price),
+        durationMins: parseInt(formData.duration),
+        availability: "WEEKLY",
+        startDate: formData.startDate?.toISOString(),
+        endDate: formData.endDate?.toISOString(),
+        insuranceAccepted: false,
+        tags: [],
+        location: formData.serviceLocation.toUpperCase(),
+        serviceAvailabilities: formData.availableDays.map(day => ({
+          dayOfWeek: dayMapping[day.day] || day.day.toUpperCase(),
+          startTime: day.startTime + ":00",
+          endTime: day.endTime + ":00"
+        })),
+        providerServicePaymentMethodsIds: formData.paymentMethods.map(id => parseInt(id)),
+        serviceInsurersIds: []
+      }
+
+      console.log("PAYLOAD SERVICE : ", payload)
+
+      const response = await axios.post('/api/user/service-categories', payload)
+      console.log("Service added successfully:", response.data)
+      toast({
+        title: "Success",
+        description: "Your new service has been successfully created and published.",
+      })
+    } catch (error) {
+      console.error("Error adding service:", error)
+      toast({
+        title: "Error",
+        description: "Failed to add the service. Please try again.",
+        variant: "destructive",
+      })
+    }
   }
 
   const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
+
   return (
-    <div className="bg-white min-h-screen">
+    <div className="  bg-white min-h-screen lg:max-w-3xl">
       <header className="bg-teal-600 text-white p-4 flex items-center">
         <Link href="/dashboard" className="mr-4">
           <ArrowLeft className="h-6 w-6" />
@@ -337,7 +390,7 @@ export default function AddNewServiceComponent({ serviceTypes, paymentMethods, c
             {days.map((day) => (
               <Button
                 key={day}
-                onClick={() => handleDaySelect(day)}
+                onClick={(e) => handleDaySelect(e, day)}
                 variant={selectedDay === day ? "default" : "outline"}
                 className="w-10 h-10 p-0 bg-cust"
               >
@@ -387,7 +440,7 @@ export default function AddNewServiceComponent({ serviceTypes, paymentMethods, c
                     type="button"
                     variant="destructive"
                     size="sm"
-                    onClick={() => handleRemoveAvailability(index)}
+                    onClick={(e) => handleRemoveAvailability(e,index)}
                   >
                     Remove
                   </Button>
@@ -397,7 +450,7 @@ export default function AddNewServiceComponent({ serviceTypes, paymentMethods, c
           </div>
         )}
 
-        <Button type="submit" className="w-full bg-teal-600 hover:bg-teal-700">
+<Button type="submit" className="w-full bg-teal-600 hover:bg-teal-700">
           Save and Publish
         </Button>
       </form>

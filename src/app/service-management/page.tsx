@@ -99,13 +99,13 @@ export default async function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-white">
+    <main className=" min-h-screen bg-white">
       <SetDynamicRoute />
       <ErrorBoundary>
         <AddNewServiceComponent 
           paymentMethods={paymentMethods}
           serviceTypes={serviceTypes}
-          currentMemberId={currentMemberId}
+          providerUserId ={currentMemberId}
         />
       </ErrorBoundary>
     </main>

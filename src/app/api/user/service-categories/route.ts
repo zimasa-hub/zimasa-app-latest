@@ -44,3 +44,46 @@ export async function GET(request: Request) {
     )
   }
 }
+
+export async function POST(request: Request) {
+    try {
+      const accessToken = await getValidAccessToken()
+      
+      const payload = await request.json()
+      console.log("PAYLOAD SERVICE : ", payload)
+  
+      const apiUrl = process.env.NEXT_PUBLIC_PROVIDER_SERVICE
+
+      if (!apiUrl) {
+        throw new Error('NEXT_PUBLIC_PROVIDER_SERVICE is not defined in the environment')
+      }
+  
+    //   const response = await axios.post(apiUrl, payload, {
+    //     headers: {
+    //       Authorization: `Bearer ${accessToken}`,
+    //       'Content-Type': 'application/json'
+    //     }
+    //   })
+  
+
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+
+      return NextResponse.json(data, { status: 200 });
+  
+    } catch (error: any) {
+      console.error('Error adding new service:', error)
+      return NextResponse.json(
+        { error: 'Failed to add new service' },
+        { status: error.response?.status || 500 }
+      )
+    }
+  }

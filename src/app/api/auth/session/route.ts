@@ -7,7 +7,7 @@ export async function GET() {
     const session = await getServerSession();
 
     if (!session) {
-      return NextResponse.json({ user: null }, { status: 200 });
+      return NextResponse.json({ user: null }, { status: 401 });
     }
 
     // Only return necessary session data

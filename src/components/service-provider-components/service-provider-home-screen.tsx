@@ -24,9 +24,9 @@ export function ServiceProviderHomeScreenComponent() {
   const [showAddNewAppointmentTask, setShowAddNewAppointmentTask] = useState(false)
   const [showEmergencyAlertDetails, setShowEmergencyAlertDetails] = useState(false)
 
-  if (showAddNewService) {
-    return <AddNewService onClose={() => setShowAddNewService(false)} />
-  }
+  // if (showAddNewService) {
+  //   return <AddNewService onClose={() => setShowAddNewService(false)} />
+  // }
 
   // if (showAddNewAppointmentTask) {
   //   return <AddNewAppointmentTask onClose={() => setShowAddNewAppointmentTask(false)} />
@@ -48,6 +48,9 @@ export function ServiceProviderHomeScreenComponent() {
 
   return (
     <div className="container mx-auto p-4 space-y-6">
+
+
+      
       {/* Emergency Alert */}
       {showEmergencyAlert && (
         <div className="bg-red-500 text-white p-4 rounded-lg flex items-center justify-between">
