@@ -9,12 +9,12 @@ export async function POST(request: Request) {
    
     let accessToken = await getValidAccessToken();
 
-    const apiEndpoint = process.env.NEXT_PUBLIC_BOOK_APPOINTMENTS;
+    const apiEndpoint = process.env.NEXT_PUBLIC_APPOINTMENTS;
 
-    console.log("APPOINTMENT DATTA: ", appointmentData)
+    console.log("APPOINTMENT DATA: ", appointmentData)
 
     if (!apiEndpoint) {
-      throw new Error('NEXT_PUBLIC_ZIMASA_LOG_FOOD is not defined in the environment');
+      throw new Error('NEXT_PUBLIC_BOOK_APPOINTMENTS is not defined in the environment');
     }
 
     const response = await fetch(apiEndpoint, {

@@ -5,29 +5,9 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Calendar, Clock, MapPin, X } from "lucide-react"
 import axios from 'axios'
+import { Appointment } from '@/lib/interfaces/appointments/appointments'
 
-type Appointment = {
-  id: number
-  service: {
-    name: string
-    providerUser: {
-      member: {
-        firstName: string
-        lastName: string
-        username: string
-      }
-    }
-    location: string
-  }
-  appointmentDate: string
-  startTime: string
-  endTime: string
-  scheduleType: {
-    name: string
-  }
-  status: string
-  notes: string
-}
+
 
 interface AllAppointmentsViewProps {
   isOpen: boolean
@@ -42,9 +22,7 @@ export default function AllAppointmentsView({ isOpen, onClose }: AllAppointments
       try {
         const currentDate = new Date().toISOString().split('T')[0]
         const response = await axios.get(`/api/user/book-appointment?localDate=${currentDate}`)
-
         setAppointments(response.data)
-        
       } catch (error) {
         console.error('Error fetching appointments:', error)
       }
@@ -78,7 +56,7 @@ export default function AllAppointmentsView({ isOpen, onClose }: AllAppointments
             <DialogTitle className="text-xl font-semibold">All Appointments</DialogTitle>
             <DialogClose asChild>
               <Button variant="ghost" className="p-1 h-auto">
-                {/* <X className="h-4 w-4" /> */}
+          
                 <span className="sr-only">Close</span>
               </Button>
             </DialogClose>
@@ -98,9 +76,9 @@ export default function AllAppointmentsView({ isOpen, onClose }: AllAppointments
                     {appointment.status}
                   </Badge>
                   <h3 className="text-base sm:text-lg font-semibold mb-1">
-                    Dr. {appointment.service.providerUser.member.username}
+                    Dr. {appointment.service.serviceHandlers[0]?.providerUser.member.username || 'Unknown'}
                   </h3>
-                  <p className="text-sm text-muted-foreground mb-3">{appointment.service.name}</p>
+                  <p className="text-sm text-muted-foreground mb-3">{appointment.service.serviceCategory.name || 'Unnamed Service'}</p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
                     <div className="flex items-center">
                       <Calendar className="h-4 w-4 mr-2 flex-shrink-0" />

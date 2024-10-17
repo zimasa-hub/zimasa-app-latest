@@ -3,10 +3,10 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, MessageCircle, Bell, User, HelpCircle, Grid } from "lucide-react";
+import { Home, MessageCircle, Bell, User, BarChart, Grid } from "lucide-react";
 import Popup from "@/components/service-provider-components/service-provider-popup";
 
-const BottomNav = () => {
+export default function BottomNav() {
   const pathname = usePathname();
   const [isPopupVisible, setPopupVisible] = useState(false);
 
@@ -28,7 +28,7 @@ const BottomNav = () => {
         boxShadow: "0 8px 20px rgba(0, 255, 255, 0.4)",
       }}
     >
-      <ul className=" grid grid-cols-5 justify-items-center items-center py-2 relative px-4">
+      <ul className="grid grid-cols-5 justify-items-center items-center py-2 relative px-4">
         <li className="col-span-1">
           <Link
             href="/dashboard"
@@ -65,8 +65,6 @@ const BottomNav = () => {
           </div>
         </li>
 
-      
-
         <li className="col-span-1">
           <Link
             href="/dashboard/profile"
@@ -81,22 +79,18 @@ const BottomNav = () => {
 
         <li className="col-span-1">
           <Link
-            href="/notifications"
+            href="/analytics"
             className={`flex flex-col items-center ${linkStyle(
-              "/notifications"
+              "/analytics"
             )}`}
           >
-            <HelpCircle className="w-5 h-5" />
-            <span className="text-xs">Help</span>
+            <BarChart className="w-5 h-5" />
+            <span className="text-xs">Analytics</span>
           </Link>
         </li>
-
-
       </ul>
 
       {isPopupVisible && <Popup onClose={handleClosePopup} />}
     </nav>
   );
-};
-
-export default BottomNav;
+}

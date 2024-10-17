@@ -1,3 +1,5 @@
+import { Member } from "../member/member"
+
 // Interfaces based on the provided payload
 interface Specialist {
     id: number
@@ -32,23 +34,7 @@ interface Specialist {
     wet: string | null
   }
   
-  interface Member {
-    id: number
-    principalId: number
-    relationshipTypeId: number | null
-    username: string
-    email: string
-    role: string | null
-    corporateId: number | null
-    firstName: string | null
-    lastName: string | null
-    phone: string | null
-    address: string | null
-    dateOfBirth: string | null
-    medicalHistory: string | null
-    createdAt: string
-    updatedAt: string | null
-  }
+
   
   interface ProviderUserSpecialist {
     id: number
@@ -79,19 +65,23 @@ interface Specialist {
     paged: boolean
     unpaged: boolean
   }
+
+  interface Sort {
+    empty: boolean;
+    sorted: boolean;
+    unsorted: boolean;
+  }
   
  export interface DoctorsDataResponse {
     content: DoctorData[]
     pageable: PaginationInfo
     size: number
     number: number
-    sort: {
-      empty: boolean
-      unsorted: boolean
-      sorted: boolean
-    }
+    sort:Sort
     numberOfElements: number
     first: boolean
     last: boolean
     empty: boolean
   }
+
+

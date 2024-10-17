@@ -14,6 +14,9 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar"
 import { format } from "date-fns"
 import { toast } from "@/hooks/use-toast"
+import ServiceManagement from "./service-management"
+import { Service } from "@/lib/interfaces/services/services"
+import { SetDynamicRoute } from "@/lib/utils/setDynamicRoute"
 
 interface FormData {
   serviceType: number
@@ -49,9 +52,10 @@ interface AddNewServiceComponentProps {
   serviceTypes: ServiceType[]
   paymentMethods: { id: number; method: string }[]
   providerUserId: string | null
+  services: Service[]
 }
 
-export default function AddNewServiceComponent({ serviceTypes, paymentMethods, providerUserId }: AddNewServiceComponentProps) {
+export default function AddNewServiceComponent({ serviceTypes, paymentMethods, providerUserId,services }: AddNewServiceComponentProps) {
   const [formData, setFormData] = useState<FormData>({
     serviceType: 0,
     serviceDescription: "",
@@ -70,6 +74,8 @@ export default function AddNewServiceComponent({ serviceTypes, paymentMethods, p
   const [selectedDay, setSelectedDay] = useState<string | null>(null)
   const [startTime, setStartTime] = useState("09:00")
   const [endTime, setEndTime] = useState("17:00")
+
+  const [showServiceManagement, setShowServiceManagement] = useState(false)
 
   useEffect(() => {
     if (formData.serviceType) {
@@ -190,6 +196,8 @@ export default function AddNewServiceComponent({ serviceTypes, paymentMethods, p
         title: "Success",
         description: "Your new service has been successfully created and published.",
       })
+    
+      setShowServiceManagement(true)
     } catch (error) {
       console.error("Error adding service:", error)
       toast({
@@ -202,13 +210,34 @@ export default function AddNewServiceComponent({ serviceTypes, paymentMethods, p
 
   const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
+  const handleBackButton = async () => {
+    setShowServiceManagement(true)
+  }
+
+ 
+ 
+  if (showServiceManagement) {
+    return (
+      <>
+      <SetDynamicRoute />
+      <ServiceManagement
+        services={services}
+        paymentMethods={paymentMethods}
+        serviceTypes={serviceTypes}
+        providerUserId={providerUserId}
+      />
+      </>
+      
+    )
+  }
+
 
   return (
     <div className="  bg-white min-h-screen lg:max-w-3xl">
       <header className="bg-teal-600 text-white p-4 flex items-center">
-        <Link href="/dashboard" className="mr-4">
+      <Button onClick={handleBackButton} variant="ghost" className="mr-4">
           <ArrowLeft className="h-6 w-6" />
-        </Link>
+        </Button>
         <h1 className="text-xl font-semibold">Add New Service</h1>
       </header>
       <form onSubmit={handleSubmit} className="p-4 space-y-4">
@@ -228,6 +257,7 @@ export default function AddNewServiceComponent({ serviceTypes, paymentMethods, p
             </SelectContent>
           </Select>
         </div>
+      
 
         <div className="space-y-2">
           <Label htmlFor="serviceDescription">Service Description</Label>
@@ -317,6 +347,7 @@ export default function AddNewServiceComponent({ serviceTypes, paymentMethods, p
               </SelectContent>
             </Select>
           </div>
+        
           <div className="space-y-2">
             <Label htmlFor="serviceLocation">Service Location</Label>
             <Select

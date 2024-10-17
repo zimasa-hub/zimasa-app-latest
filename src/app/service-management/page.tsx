@@ -1,10 +1,10 @@
 import { getValidAccessToken } from '@/lib/utils/auth-utils'
 import { SetDynamicRoute } from '@/lib/utils/setDynamicRoute'
 import ErrorBoundary from '@/components/ErrorBoundary'
-import AddNewServiceComponent from '@/components/service-provider-components/add-new-service'
+import ServiceManagement from '@/components/service-provider-components/service-management'
 import axios from 'axios'
 import { jwtDecode } from 'jwt-decode'
-import { PaymentMethod, PageableResponse, ServiceType } from '@/lib/interfaces/services/services'
+import { PaymentMethod, PageableResponse, ServiceType, Service } from '@/lib/interfaces/services/services'
 
 interface DecodedToken {
   sub: string
@@ -14,7 +14,7 @@ interface DecodedToken {
 async function getPaymentMethods(accessToken: string): Promise<PaymentMethod[]> {
   const url = process.env.NEXT_PUBLIC_GET_PAYMENT_METHODS
   if (!url) {
-    throw new Error("NEXT_PUBLIC_API_URL environment variable is not set")
+    throw new Error("NEXT_PUBLIC_GET_PAYMENT_METHODS environment variable is not set")
   }
 
   const resp = await axios.get<PaymentMethod[]>(url, {
@@ -34,7 +34,7 @@ async function getPaymentMethods(accessToken: string): Promise<PaymentMethod[]> 
 async function getServiceTypes(accessToken: string): Promise<PageableResponse<ServiceType>> {
   const url = process.env.NEXT_PUBLIC_GET_SERVICE_TYPES
   if (!url) {
-    throw new Error("NEXT_PUBLIC_API_URL environment variable is not set")
+    throw new Error("NEXT_PUBLIC_GET_SERVICE_TYPES environment variable is not set")
   }
 
   const resp = await axios.get<PageableResponse<ServiceType>>(url, {
@@ -51,9 +51,32 @@ async function getServiceTypes(accessToken: string): Promise<PageableResponse<Se
   return resp.data
 }
 
+async function getServices(accessToken: string, currentMemberId: string): Promise<PageableResponse<Service>> {
+  const baseUrl = process.env.NEXT_PUBLIC_PROVIDER_GET_SERVICES
+  if (!baseUrl) {
+    throw new Error("NEXT_PUBLIC_API_BASE_URL environment variable is not set")
+  }
+
+  const url = `${baseUrl}?cursorId=0&limit=50&sortBy=id&sortDirection=asc&currentUser=${currentMemberId}`
+
+  const resp = await axios.get<PageableResponse<Service>>(url, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json'
+    }
+  })
+
+  if (resp.status !== 200) {
+    throw new Error(`Failed to fetch services. Status: ${resp.status}`)
+  }
+
+  return resp.data
+}
+
 export default async function Home() {
   let paymentMethods: PaymentMethod[] | null = null
   let serviceTypes: ServiceType[] | null = null
+  let services: Service[] | null = null
   let currentMemberId: string | null = null
   let error: string | null = null
 
@@ -62,13 +85,15 @@ export default async function Home() {
     const decodedToken = jwtDecode<DecodedToken>(accessToken)
     currentMemberId = decodedToken.sub
 
-    const [paymentMethodsData, serviceTypesData] = await Promise.all([
+    const [paymentMethodsData, serviceTypesData, servicesData] = await Promise.all([
       getPaymentMethods(accessToken),
-      getServiceTypes(accessToken)
+      getServiceTypes(accessToken),
+      getServices(accessToken, currentMemberId)
     ])
 
     paymentMethods = paymentMethodsData
     serviceTypes = serviceTypesData.content
+    services = servicesData.content
   } catch (err) {
     console.error("Error in Home component:", err)
     error = err instanceof Error ? err.message : String(err)
@@ -88,7 +113,7 @@ export default async function Home() {
     )
   }
 
-  if (!paymentMethods || !serviceTypes || !currentMemberId) {
+  if (!paymentMethods || !serviceTypes || !services || !currentMemberId) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
@@ -99,13 +124,14 @@ export default async function Home() {
   }
 
   return (
-    <main className=" min-h-screen bg-white">
+    <main className="min-h-screen bg-white">
       <SetDynamicRoute />
       <ErrorBoundary>
-        <AddNewServiceComponent 
+        <ServiceManagement 
+          services={services}
           paymentMethods={paymentMethods}
           serviceTypes={serviceTypes}
-          providerUserId ={currentMemberId}
+          providerUserId={currentMemberId}
         />
       </ErrorBoundary>
     </main>

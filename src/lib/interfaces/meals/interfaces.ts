@@ -23,4 +23,5 @@ export interface MealTiming {
   
  export interface UserNameProps {
     name: string | null;
+  
   }

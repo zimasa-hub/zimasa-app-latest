@@ -5,6 +5,7 @@ import { SetDynamicRoute } from '@/lib/utils/setDynamicRoute'
 import ErrorBoundary from '@/components/ErrorBoundary'
 import axios from 'axios'
 import { jwtDecode } from 'jwt-decode';
+import { PageableResponse, ServiceType, Service } from '@/lib/interfaces/services/services'
 
 interface ScheduleType {
   id: number
@@ -63,21 +64,68 @@ async function getScheduleTypes(accessToken: string): Promise<ScheduleType[]> {
   return resp.data.content
 }
 
+async function getServiceTypes(accessToken: string): Promise<PageableResponse<ServiceType>> {
+  const url = process.env.NEXT_PUBLIC_GET_SERVICE_TYPES
+  if (!url) {
+    throw new Error("NEXT_PUBLIC_GET_SERVICE_TYPES environment variable is not set")
+  }
+
+  const resp = await axios.get<PageableResponse<ServiceType>>(url, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json'
+    }
+  })
+
+  if (resp.status !== 200) {
+    throw new Error(`Failed to fetch service types. Status: ${resp.status}`)
+  }
+
+  return resp.data
+}
+
+async function getServices(accessToken: string, currentMemberId: string): Promise<PageableResponse<Service>> {
+  const baseUrl = process.env.NEXT_PUBLIC_PROVIDER_GET_SERVICES
+  if (!baseUrl) {
+    throw new Error("NEXT_PUBLIC_API_BASE_URL environment variable is not set")
+  }
+
+  const url = `${baseUrl}?cursorId=0&limit=50&sortBy=id&sortDirection=asc&currentUser=${currentMemberId}`
+
+  const resp = await axios.get<PageableResponse<Service>>(url, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json'
+    }
+  })
+
+  if (resp.status !== 200) {
+    throw new Error(`Failed to fetch services. Status: ${resp.status}`)
+  }
+
+  return resp.data
+}
+
 export default async function Home() {
   let doctorsData: DoctorsDataResponse | null = null
   let scheduleTypes: ScheduleType[] | null = null
   let currentMemberId: string | null = null
   let error: string | null = null
+  let serviceTypes: ServiceType[] | null = null
+
 
   try {
     const accessToken = await getValidAccessToken()
     const decodedToken = jwtDecode<DecodedToken>(accessToken)
     currentMemberId = decodedToken.sub
 
-    const [doctors, types] = await Promise.all([
+    const [doctors, types, serviceTypesData] = await Promise.all([
       getDoctorsData(accessToken),
-      getScheduleTypes(accessToken)
+      getScheduleTypes(accessToken),
+      getServiceTypes(accessToken),
     ])
+
+    serviceTypes = serviceTypesData.content
     doctorsData = doctors
     scheduleTypes = types
   } catch (err) {
@@ -99,7 +147,7 @@ export default async function Home() {
     )
   }
 
-  if (!doctorsData || !scheduleTypes || !currentMemberId) {
+  if (!doctorsData || !scheduleTypes ||!serviceTypes || !currentMemberId) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
@@ -114,6 +162,7 @@ export default async function Home() {
       <SetDynamicRoute />
       <ErrorBoundary>
         <BookAppointmentScreen 
+            serviceTypes={serviceTypes}
           doctors={doctorsData} 
           scheduleTypes={scheduleTypes} 
           currentMemberId={currentMemberId}
