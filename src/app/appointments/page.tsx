@@ -1,47 +1,19 @@
 import BookAppointmentScreen from '@/components/book-appointment-screen'
 import { getValidAccessToken } from '@/lib/utils/auth-utils'
-import { DoctorsDataResponse } from '@/lib/interfaces/providers/doctors'
 import { SetDynamicRoute } from '@/lib/utils/setDynamicRoute'
 import ErrorBoundary from '@/components/ErrorBoundary'
 import axios from 'axios'
 import { jwtDecode } from 'jwt-decode';
-import { PageableResponse, ServiceType, Service } from '@/lib/interfaces/services/services'
+import { PageableResponse, ServiceType } from '@/lib/interfaces/services/services'
+import { FilteredProvidersResponse, ProviderService, ScheduleType } from '@/lib/interfaces/provider-services/provider-service'
 
-interface ScheduleType {
-  id: number
-  name: string
-  description: string
-  slotDurationMinutes: number
-  breakDurationMinutes: number
-}
+
 
 interface DecodedToken {
   sub: string
   // Add other token claims as needed
 }
 
-async function getDoctorsData(accessToken: string): Promise<DoctorsDataResponse> {
-  const url = process.env.NEXT_PUBLIC_DOCTORS
-
-  if (!url) {
-    throw new Error("NEXT_PUBLIC_DOCTORS environment variable is not set")
-  }
-
-  const resp = await axios.get<DoctorsDataResponse>(url, {
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      'Content-Type': 'application/json'
-    },
-    data: {},  
-    params: {},  
-  })
-
-  if (resp.status !== 200) {
-    throw new Error(`Failed to fetch data. Status: ${resp.status}`)
-  }
-
-  return resp.data
-}
 
 async function getScheduleTypes(accessToken: string): Promise<ScheduleType[]> {
   const url = process.env.NEXT_PUBLIC_SCHEDULE_TYPES
@@ -84,49 +56,54 @@ async function getServiceTypes(accessToken: string): Promise<PageableResponse<Se
   return resp.data
 }
 
-async function getServices(accessToken: string, currentMemberId: string): Promise<PageableResponse<Service>> {
-  const baseUrl = process.env.NEXT_PUBLIC_PROVIDER_GET_SERVICES
-  if (!baseUrl) {
-    throw new Error("NEXT_PUBLIC_API_BASE_URL environment variable is not set")
+async function getProviderServices(accessToken: string): Promise<FilteredProvidersResponse> {
+  const url = process.env.NEXT_PUBLIC_PROVIDER_GET_SERVICES
+  if (!url) {
+    throw new Error("NEXT_PUBLIC_PROVIDER_GET_SERVICES environment variable is not set")
   }
 
-  const url = `${baseUrl}?cursorId=0&limit=50&sortBy=id&sortDirection=asc&currentUser=${currentMemberId}`
-
-  const resp = await axios.get<PageableResponse<Service>>(url, {
+  const resp = await axios.get<FilteredProvidersResponse>(url, {
     headers: {
       Authorization: `Bearer ${accessToken}`,
       'Content-Type': 'application/json'
+    },
+    params: {
+      cursorId: 0,
+      limit: 50,
+      sortBy: 'id',
+      sortDirection: 'asc'
     }
   })
 
   if (resp.status !== 200) {
-    throw new Error(`Failed to fetch services. Status: ${resp.status}`)
+    throw new Error(`Failed to fetch provider services. Status: ${resp.status}`)
   }
+
+  
 
   return resp.data
 }
 
 export default async function Home() {
-  let doctorsData: DoctorsDataResponse | null = null
+  let providerServices: ProviderService[] | null = null
   let scheduleTypes: ScheduleType[] | null = null
   let currentMemberId: string | null = null
   let error: string | null = null
   let serviceTypes: ServiceType[] | null = null
-
 
   try {
     const accessToken = await getValidAccessToken()
     const decodedToken = jwtDecode<DecodedToken>(accessToken)
     currentMemberId = decodedToken.sub
 
-    const [doctors, types, serviceTypesData] = await Promise.all([
-      getDoctorsData(accessToken),
+    const [services, types, serviceTypesData] = await Promise.all([
+      getProviderServices(accessToken),
       getScheduleTypes(accessToken),
       getServiceTypes(accessToken),
     ])
 
+    providerServices = services.content
     serviceTypes = serviceTypesData.content
-    doctorsData = doctors
     scheduleTypes = types
   } catch (err) {
     console.error("Error in Home component:", err)
@@ -147,7 +124,7 @@ export default async function Home() {
     )
   }
 
-  if (!doctorsData || !scheduleTypes ||!serviceTypes || !currentMemberId) {
+  if (!providerServices || !scheduleTypes || !serviceTypes || !currentMemberId) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
@@ -162,8 +139,8 @@ export default async function Home() {
       <SetDynamicRoute />
       <ErrorBoundary>
         <BookAppointmentScreen 
-            serviceTypes={serviceTypes}
-          doctors={doctorsData} 
+          serviceTypes={serviceTypes}
+          providerServices={providerServices} 
           scheduleTypes={scheduleTypes} 
           currentMemberId={currentMemberId}
         />

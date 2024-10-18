@@ -25,8 +25,8 @@ export default async function Dashboard() {
     <main className="flex-grow bg-white">
       <SetDynamicRoute />
       <ErrorBoundary>
-        {/* <ComprehensivePatientHomeScreen name={name} /> */}
-        <ServiceProviderHomeScreenComponent name={name}/>
+        <ComprehensivePatientHomeScreen name={name} />
+        {/* <ServiceProviderHomeScreenComponent name={name}/> */}
       </ErrorBoundary>
     </main>
   );

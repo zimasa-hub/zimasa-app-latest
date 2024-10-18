@@ -380,12 +380,13 @@ export default function AddNewServiceComponent({ serviceTypes, paymentMethods, p
                     {formData.startDate ? format(formData.startDate, "PPP") : "Pick a date"}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
+                <PopoverContent className="w-auto p-0" align="start">
                   <Calendar
                     mode="single"
                     selected={formData.startDate}
                     onSelect={(date) => handleDateChange(date, 'startDate')}
                     initialFocus
+                    className="rounded-md border"
                   />
                 </PopoverContent>
               </Popover>
@@ -402,12 +403,13 @@ export default function AddNewServiceComponent({ serviceTypes, paymentMethods, p
                     {formData.endDate ? format(formData.endDate, "PPP") : "Pick a date"}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
+                <PopoverContent className="w-auto p-0" align="start">
                   <Calendar
                     mode="single"
                     selected={formData.endDate}
                     onSelect={(date) => handleDateChange(date, 'endDate')}
                     initialFocus
+                    className="rounded-md border"
                   />
                 </PopoverContent>
               </Popover>

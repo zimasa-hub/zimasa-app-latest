@@ -67,9 +67,9 @@ export default function BottomNav() {
 
         <li className="col-span-1">
           <Link
-            href="/dashboard/profile"
+            href="/profile"
             className={`flex flex-col items-center ${linkStyle(
-              "/dashboard/profile"
+              "/profile"
             )}`}
           >
             <User className="w-5 h-5" />

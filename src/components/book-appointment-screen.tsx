@@ -1,4 +1,4 @@
-"use client"
+'use client'
 
 import { useState, useMemo, useEffect } from 'react'
 import { Button } from "@/components/ui/button"
@@ -11,128 +11,17 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Textarea } from "@/components/ui/textarea"
-import { MapPin, Calendar as CalendarIcon, FileText, ChevronDown, ChevronUp, Search, Filter, Clock, User, CreditCard, Stethoscope, Star } from 'lucide-react'
+import { MapPin, Calendar as CalendarIcon, FileText, ChevronDown, ChevronUp, Search, Filter, Clock, User, CreditCard, Stethoscope, Star, Tag } from 'lucide-react'
 import axios from 'axios'
 import { ServiceCategory, ServiceType } from '@/lib/interfaces/services/services'
-import { DoctorData, DoctorsDataResponse } from '@/lib/interfaces/providers/doctors'
 import { format, parse, addMinutes, isSameDay } from 'date-fns'
+import { Appointment, BookAppointmentScreenProps, FilteredProvidersResponse, ProviderService } from '@/lib/interfaces/provider-services/provider-service'
 
 
-interface ProviderService {
-  id: number
-  description: string
-  maximumCapacity: number
-  price: number
-  durationMins: number
-  availability: string
-  startDate: string
-  endDate: string
-  insuranceAccepted: boolean
-  isActive: boolean
-  tags: string[]
-  location: string
-  serviceCategory: {
-    id: number
-    name: string
-    description: string
-    serviceType: string
-  }
-  serviceHandlers: Array<{
-    id: number
-    isAvailable: boolean
-    providerUser: {
-      id: number
-      provider: {
-        id: number
-        name: string
-        description: string
-        contactEmail: string
-        contactPhone: string
-        address: string
-      }
-      member: {
-        id: number
-        username: string
-        email: string
-        firstName: string | null
-        lastName: string | null
-        phone: string | null
-      }
-      providerUserSpecialists: Array<{
-        id: number
-        specialist: {
-          id: number
-          name: string
-          description: string
-        }
-      }>
-    }
-  }>
-  serviceAvailability: Array<{
-    id: number
-    dayOfWeek: string
-    startTime: string
-    endTime: string
-  }>
-}
 
-interface FilteredProvidersResponse {
-  content: ProviderService[]
-  pageable: {
-    pageNumber: number
-    pageSize: number
-    sort: {
-      empty: boolean
-      unsorted: boolean
-      sorted: boolean
-    }
-    offset: number
-    paged: boolean
-    unpaged: boolean
-  }
-  size: number
-  number: number
-  sort: {
-    empty: boolean
-    unsorted: boolean
-    sorted: boolean
-  }
-  numberOfElements: number
-  first: boolean
-  last: boolean
-  empty: boolean
-}
-
-interface ScheduleType {
-  id: number
-  name: string
-  description: string
-  slotDurationMinutes: number
-  breakDurationMinutes: number
-}
-
-interface BookAppointmentScreenProps {
-  doctors: DoctorsDataResponse
-  scheduleTypes: ScheduleType[]
-  currentMemberId: string
-  serviceTypes: ServiceType[]
-}
-
-type Appointment = {
-  providerService: number
-  scheduleType: number
-  appointmentDate: string
-  duration: number
-  startTime: string
-  endTime: string
-  notes: string
-  communicationPreference: string
-  location: "INPERSON" | "TELEHEALTH"
-}
-
-export default function BookAppointmentScreen({ doctors, scheduleTypes, currentMemberId, serviceTypes }: BookAppointmentScreenProps) {
+export default function BookAppointmentScreen({ scheduleTypes, currentMemberId, serviceTypes, providerServices }: BookAppointmentScreenProps) {
   const [step, setStep] = useState<'search' | 'profile' | 'form' | 'confirmation'>('search')
-  const [selectedProvider, setSelectedProvider] = useState<DoctorData | ProviderService | null>(null)
+  const [selectedProvider, setSelectedProvider] = useState<ProviderService | null>(null)
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined)
   const [appointment, setAppointment] = useState<Appointment | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
@@ -143,22 +32,12 @@ export default function BookAppointmentScreen({ doctors, scheduleTypes, currentM
   const [filteredProviders, setFilteredProviders] = useState<ProviderService[]>([])
   const [serviceCategories, setServiceCategories] = useState<ServiceCategory[]>([])
   const [isFiltered, setIsFiltered] = useState(false)
+  const [availableTimeSlots, setAvailableTimeSlots] = useState<string[]>([])
 
-  const doctorsList = useMemo(() => {
-    const uniqueDoctors = new Map<string, DoctorData>();
-    doctors?.content?.forEach(doctor => {
-      if (!uniqueDoctors.has(doctor.member.id.toString())) {
-        uniqueDoctors.set(doctor.member.id.toString(), doctor);
-      }
-    });
-    return Array.from(uniqueDoctors.values());
-  }, [doctors]);
-  const handleProviderSelect = (provider: DoctorData | ProviderService) => {
+  const handleProviderSelect = (provider: ProviderService) => {
     setSelectedProvider(provider)
     setStep('profile')
   }
-
-
 
   const handleSelectChange = async (selectName: string, value: string) => {
     if (selectName === "serviceType") {
@@ -171,14 +50,11 @@ export default function BookAppointmentScreen({ doctors, scheduleTypes, currentM
     }
   }
 
-
-  const [availableTimeSlots, setAvailableTimeSlots] = useState<string[]>([])
-
   const availableDays = useMemo(() => {
-    if (selectedProvider && 'serviceAvailability' in selectedProvider) {
+    if (selectedProvider) {
       return selectedProvider.serviceAvailability.map(availability => availability.dayOfWeek.toLowerCase())
     }
-    return ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'] // Default to weekdays if no specific availability
+    return ['monday', 'tuesday', 'wednesday', 'thursday', 'friday']
   }, [selectedProvider])
 
   const handleDateSelect = (date: Date | undefined) => {
@@ -194,7 +70,7 @@ export default function BookAppointmentScreen({ doctors, scheduleTypes, currentM
   }
 
   const generateTimeSlots = (date: Date) => {
-    if (selectedProvider && 'serviceAvailability' in selectedProvider) {
+    if (selectedProvider) {
       const dayOfWeek = format(date, 'EEEE').toLowerCase()
       const availability = selectedProvider.serviceAvailability.find(a => a.dayOfWeek.toLowerCase() === dayOfWeek)
       
@@ -214,11 +90,9 @@ export default function BookAppointmentScreen({ doctors, scheduleTypes, currentM
         setAvailableTimeSlots([])
       }
     } else {
-      // Fallback to default time slots if no specific availability
       setAvailableTimeSlots(['09:00', '10:00', '11:00', '13:00', '14:00', '15:00'])
     }
   }
-
 
   const fetchServiceCategories = async (serviceTypeId: number) => {
     try {
@@ -261,27 +135,48 @@ export default function BookAppointmentScreen({ doctors, scheduleTypes, currentM
       setSelectedServiceType(serviceTypes[0].id.toString())
       fetchServiceCategories(serviceTypes[0].id)
     }
-  }, [serviceTypes])
+    setFilteredProviders(providerServices)
+  }, [serviceTypes, providerServices])
 
   const displayedProviders = useMemo(() => {
-    if (isFiltered) {
-      return filteredProviders.filter(provider => 
-        provider.serviceHandlers.some(handler => 
-          handler.providerUser.provider.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          handler.providerUser.member.username.toLowerCase().includes(searchTerm.toLowerCase())
-        ) &&
-        (filterLocation === '' || provider.serviceHandlers.some(handler => 
-          handler.providerUser.provider.address.toLowerCase().includes(filterLocation.toLowerCase())
-        ))
-      )
-    } else {
-      return doctorsList.filter(doctor => 
-        (doctor.member.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-         doctor.provider.name.toLowerCase().includes(searchTerm.toLowerCase())) &&
-        (filterLocation === '' || doctor.provider.address.toLowerCase().includes(filterLocation.toLowerCase()))
-      )
-    }
-  }, [isFiltered, filteredProviders, doctorsList, searchTerm, filterLocation])
+    const uniqueProviders = new Map<number, {
+      id: number
+      name: string
+      address: string
+      member: {
+        username: string
+      }
+      serviceCategories: Set<string>
+      services: ProviderService[]
+    }>()
+
+    filteredProviders.forEach((service: ProviderService) => {
+      service.serviceHandlers.forEach(handler => {
+        const providerId = handler.providerUser.provider.id
+        if (!uniqueProviders.has(providerId)) {
+          uniqueProviders.set(providerId, {
+            id: providerId,
+            name: handler.providerUser.provider.name,
+            address: handler.providerUser.provider.address,
+            member: handler.providerUser.member,
+            serviceCategories: new Set([service.serviceCategory.name]),
+            services: [service]
+          })
+        } else {
+          const provider = uniqueProviders.get(providerId)!
+          provider.serviceCategories.add(service.serviceCategory.name)
+          provider.services.push(service)
+        }
+      })
+    })
+
+    return Array.from(uniqueProviders.values()).filter(provider => 
+      provider.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      provider.member.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      provider.serviceCategories.has(searchTerm.toLowerCase()) &&
+      (filterLocation === '' || provider.address.toLowerCase().includes(filterLocation.toLowerCase()))
+    )
+  }, [filteredProviders, searchTerm, filterLocation])
 
   const handleAppointmentSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -293,7 +188,7 @@ export default function BookAppointmentScreen({ doctors, scheduleTypes, currentM
       appointmentDate.setHours(parseInt(hours), parseInt(minutes), 0, 0)
 
       const endTime = new Date(appointmentDate)
-      endTime.setMinutes(endTime.getMinutes() + ('durationMins' in selectedProvider ? selectedProvider.durationMins : 30))
+      endTime.setMinutes(endTime.getMinutes() + selectedProvider.durationMins)
 
       const appointmentType = formData.get('type') as string
       const location: "INPERSON" | "TELEHEALTH" = appointmentType.toUpperCase() === 'IN-PERSON' ? 'INPERSON' : 'TELEHEALTH'
@@ -302,7 +197,7 @@ export default function BookAppointmentScreen({ doctors, scheduleTypes, currentM
         providerService: selectedProvider.id,
         scheduleType: parseInt(formData.get('scheduleType') as string),
         appointmentDate: appointmentDate.toISOString(),
-        duration: 'durationMins' in selectedProvider ? selectedProvider.durationMins : 30,
+        duration: selectedProvider.durationMins,
         startTime: `${startTime}:00`,
         endTime: `${endTime.getHours().toString().padStart(2, '0')}:${endTime.getMinutes().toString().padStart(2, '0')}:00`,
         notes: formData.get('notes') as string,
@@ -403,6 +298,7 @@ export default function BookAppointmentScreen({ doctors, scheduleTypes, currentM
                       value={selectedServiceCategory}
                       onValueChange={(value) => handleSelectChange("serviceCategory", value)}
                     >
+                      
                       <SelectTrigger>
                         <SelectValue placeholder="Select category" />
                       </SelectTrigger>
@@ -428,53 +324,30 @@ export default function BookAppointmentScreen({ doctors, scheduleTypes, currentM
               <ScrollArea className="h-[400px]">
                 {displayedProviders.map((provider) => (
                   <div key={provider.id} className="flex flex-col space-y-3 p-4 border-b last:border-b-0 hover:bg-gray-50 transition-colors duration-200">
-                    {'serviceHandlers' in provider ? (
-                      provider.serviceHandlers.map((handler) => (
-                        <div key={handler.id} className="flex items-center space-x-4">
-                          <Avatar className="w-12 h-12">
-                            <AvatarImage src="/male_doc.png?height=50&width=50" alt={`Dr. ${handler.providerUser.member.username}`} />
-                            
-                            <AvatarFallback>{handler.providerUser.member.username[0]}</AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <h3 className="font-semibold text-lg text-primary">Dr. {handler.providerUser.member.username}</h3>
-                            <p className="text-sm text-gray-600">{handler.providerUser.provider.name}</p>
-                            <div className="flex flex-wrap gap-2 mt-1">
-                              <Badge variant="secondary" className="rounded-full px-3 py-1 bg-primary/10 text-primary">
-                                {provider.serviceCategory.name}
-                              </Badge>
-                            </div>
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <div className="flex items-center space-x-4">
-                        <Avatar className="w-12 h-12">
-                          <AvatarImage src="/male_doc.png?height=50&width=50" alt={`Dr. ${provider.member.username}`} />
-                          <AvatarFallback>{provider.member.username?.[0]}</AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <h3 className="font-semibold text-lg text-primary">Dr. {provider.member.username}</h3>
-                          <p className="text-sm text-gray-600">{provider.provider.name}</p>
-                          <div className="flex flex-wrap gap-2 mt-1">
-                            {provider.providerUserSpecialists.map((specialist) => (
-                              <Badge key={specialist.id} variant="secondary" className="rounded-full px-3 py-1 bg-primary/10 text-primary">
-                                {specialist.specialist.name}
-                              </Badge>
-                            ))}
-                          </div>
+                    <div className="flex items-center space-x-4">
+                      <Avatar className="w-12 h-12">
+                        <AvatarImage src="/male_doc.png?height=50&width=50" alt={`Dr. ${provider.member.username}`} />
+                        <AvatarFallback>{provider.member.username[0]}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <h3 className="font-semibold text-lg text-primary">Dr. {provider.member.username}</h3>
+                        <p className="text-sm text-gray-600">{provider.name}</p>
+                        <div className="flex flex-wrap gap-2 mt-1">
+                          {Array.from(provider.serviceCategories).map((category, index) => (
+                            <Badge key={index} variant="secondary" className="rounded-full px-3 py-1 bg-primary/10 text-primary flex items-center">
+                              <Tag className="h-3 w-3 mr-1" />
+                              {category}
+                            </Badge>
+                          ))}
                         </div>
                       </div>
-                    )}
+                    </div>
                     <div className="flex items-center text-sm text-gray-600">
                       <MapPin className="w-4 h-4 mr-1 text-primary" />
-                      {'serviceHandlers' in provider
-                        ? provider.serviceHandlers[0]?.providerUser.provider.address || "Address not available"
-                        : provider.provider.address || provider.member.address || "Address not available"
-                      }
+                      {provider.address}
                     </div>
                     <div className="flex justify-between items-center">
-                      <Button onClick={() => handleProviderSelect(provider)} className="bg-[#008080] rounded-[5px]">View Profile</Button>
+                      <Button onClick={() => handleProviderSelect(provider.services[0])} className="bg-[#008080] rounded-[5px]">View Profile</Button>
                     </div>
                   </div>
                 ))}
@@ -484,14 +357,11 @@ export default function BookAppointmentScreen({ doctors, scheduleTypes, currentM
         </div>
       )}
 
-{step === 'profile' && selectedProvider && (
+      {step === 'profile' && selectedProvider && (
         <Card className="rounded-[5px] shadow-lg">
           <CardHeader>
             <CardTitle className="text-2xl font-semibold text-primary">
-              {'serviceHandlers' in selectedProvider
-                ? `Dr. ${selectedProvider.serviceHandlers[0]?.providerUser.member.username}`
-                : `Dr. ${selectedProvider.member.username}`
-              }
+              Dr. {selectedProvider.serviceHandlers[0]?.providerUser.member.username}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -499,73 +369,38 @@ export default function BookAppointmentScreen({ doctors, scheduleTypes, currentM
               <Avatar className="w-24 h-24">
                 <AvatarImage 
                   src="/male_doc.png?height=100&width=100" 
-                  alt={'serviceHandlers' in selectedProvider
-                    ? `Dr. ${selectedProvider.serviceHandlers[0]?.providerUser.member.username}`
-                    : `Dr. ${selectedProvider.member.username}`
-                  } 
+                  alt={`Dr. ${selectedProvider.serviceHandlers[0]?.providerUser.member.username}`}
                 />
                 <AvatarFallback>
-                  {'serviceHandlers' in selectedProvider
-                    ? selectedProvider.serviceHandlers[0]?.providerUser.member.username[0]
-                    : selectedProvider.member.username?.[0]
-                  }
+                  {selectedProvider.serviceHandlers[0]?.providerUser.member.username[0]}
                 </AvatarFallback>
               </Avatar>
               <div className="text-center">
                 <h2 className="text-xl font-semibold text-primary">
-                  {'serviceHandlers' in selectedProvider
-                    ? `Dr. ${selectedProvider.serviceHandlers[0]?.providerUser.member.username}`
-                    : `Dr. ${selectedProvider.member.username}`
-                  }
+                  Dr. {selectedProvider.serviceHandlers[0]?.providerUser.member.username}
                 </h2>
                 <p className="text-gray-600">
-                  {'serviceHandlers' in selectedProvider
-                    ? selectedProvider.serviceHandlers[0]?.providerUser.provider.name
-                    : selectedProvider.provider.name
-                  }
+                  {selectedProvider.serviceHandlers[0]?.providerUser.provider.name}
                 </p>
                 <div className="flex items-center justify-center mt-1">
-                  {'serviceCategory' in selectedProvider ? (
-                    <Badge variant="secondary" className="rounded-full px-3 py-1 bg-primary/10 text-primary">
-                      {selectedProvider.serviceCategory.name}
-                    </Badge>
-                  ) : (
-                    selectedProvider.providerUserSpecialists.map((specialist) => (
-                      <Badge key={specialist.id} variant="secondary" className="rounded-full px-3 py-1 bg-primary/10 text-primary">
-                        {specialist.specialist.name}
-                      </Badge>
-                    ))
-                  )}
+                  <Badge variant="secondary" className="rounded-full px-3 py-1 bg-primary/10 text-primary">
+                    {selectedProvider.serviceCategory.name}
+                  </Badge>
                 </div>
                 <div className="flex items-center justify-center mt-1 text-gray-600">
                   <MapPin className="w-5 h-5 mr-1 text-primary" />
-                  <span>
-                    {'serviceHandlers' in selectedProvider
-                      ? selectedProvider.serviceHandlers[0]?.providerUser.provider.address || "Address not available"
-                      : selectedProvider.provider.address || selectedProvider.member.address || "Address not available"
-                    }
-                  </span>
+                  <span>{selectedProvider.location}</span>
                 </div>
               </div>
             </div>
-            {'description' in selectedProvider && (
-              <div>
-                <h3 className="font-semibold text-lg text-primary mb-2">Service Description</h3>
-                <p>{selectedProvider.description}</p>
-              </div>
-            )}
+            <div>
+              <h3 className="font-semibold text-lg text-primary mb-2">Service Description</h3>
+              <p>{selectedProvider.description}</p>
+            </div>
             <div>
               <h3 className="font-semibold text-lg text-primary mb-2">Contact Information</h3>
-              <p><span className="font-semibold">Email:</span> {
-                'serviceHandlers' in selectedProvider
-                  ? selectedProvider.serviceHandlers[0]?.providerUser.provider.contactEmail
-                  : selectedProvider.provider.contactEmail
-              }</p>
-              <p><span className="font-semibold">Phone:</span> {
-                'serviceHandlers' in selectedProvider
-                  ? selectedProvider.serviceHandlers[0]?.providerUser.provider.contactPhone
-                  : selectedProvider.provider.contactPhone
-              }</p>
+              <p><span className="font-semibold">Email:</span> {selectedProvider.serviceHandlers[0]?.providerUser.provider.contactEmail}</p>
+              <p><span className="font-semibold">Phone:</span> {selectedProvider.serviceHandlers[0]?.providerUser.provider.contactPhone}</p>
             </div>
             <div>
               <h3 className="font-semibold text-lg text-primary mb-2">Select Appointment Date</h3>
@@ -607,7 +442,7 @@ export default function BookAppointmentScreen({ doctors, scheduleTypes, currentM
         </Card>
       )}
 
-{step === 'form' && selectedProvider && selectedDate && (
+      {step === 'form' && selectedProvider && selectedDate && (
         <Card className="rounded-[5px] shadow-lg">
           <CardHeader>
             <CardTitle className="text-2xl font-semibold text-primary flex items-center">
@@ -621,11 +456,7 @@ export default function BookAppointmentScreen({ doctors, scheduleTypes, currentM
                 <Label htmlFor="provider" className="text-primary">Provider</Label>
                 <Input 
                   id="provider" 
-                  value={
-                    'serviceHandlers' in selectedProvider
-                      ? `Dr. ${selectedProvider.serviceHandlers[0]?.providerUser.member.username}`
-                      : `Dr. ${selectedProvider.member.username}`
-                  } 
+                  value={`Dr. ${selectedProvider.serviceHandlers[0]?.providerUser.member.username}`}
                   readOnly 
                   className="rounded-[5px]" 
                 />
@@ -715,11 +546,7 @@ export default function BookAppointmentScreen({ doctors, scheduleTypes, currentM
             <p className="text-lg font-semibold text-green-600">Your appointment has been successfully booked!</p>
             <div className="bg-gray-50 p-4 rounded-[5px]">
               <h3 className="font-semibold text-lg text-primary mb-2">Appointment Details:</h3>
-              <p><span className="font-semibold">Provider:</span> Dr. {
-                'serviceHandlers' in selectedProvider!
-                  ? selectedProvider!.serviceHandlers[0]?.providerUser.member.username
-                  : selectedProvider!.member.username
-              }</p>
+              <p><span className="font-semibold">Provider:</span> Dr. {selectedProvider!.serviceHandlers[0]?.providerUser.member.username}</p>
               <p><span className="font-semibold">Date:</span> {new Date(appointment.appointmentDate).toDateString()}</p>
               <p><span className="font-semibold">Time:</span> {appointment.startTime} - {appointment.endTime}</p>
               <p><span className="font-semibold">Duration:</span> {appointment.duration} minutes</p>

@@ -31,17 +31,21 @@ async function keycloakSessionLogOut() {
   }
 }
 
-export default function Sidebar({ isOpen,name }: SidebarProps) {
+export default function Component({ isOpen, name }: SidebarProps) {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const router = useRouter();
 
   const navItems = [
-    { icon: User, label: 'Profile' },
-    { icon: BookOpen, label: 'Topics' },
-    { icon: MessageSquare, label: 'Messages' },
-    { icon: Bell, label: 'Notifications' },
-    { icon: Bookmark, label: 'Bookmarks' },
+    { icon: User, label: 'Profile', href: '/profile' },
+    { icon: BookOpen, label: 'Topics', href: '/topics' },
+    { icon: MessageSquare, label: 'Messages', href: '/messages' },
+    { icon: Bell, label: 'Notifications', href: '/notifications' },
+    { icon: Bookmark, label: 'Bookmarks', href: '/bookmarks' },
   ]
+
+  const handleNavigation = (href: string) => {
+    router.push(href);
+  };
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
@@ -74,7 +78,7 @@ export default function Sidebar({ isOpen,name }: SidebarProps) {
             <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></span>
           </div>
           <div className="ml-4">
-            <h2 className="font-semibold text-lg"> {name || "Guest"}</h2>
+            <h2 className="font-semibold text-lg">{name || "Guest"}</h2>
             <p className="text-sm text-muted-foreground">Zimasa Member</p>
           </div>
         </div>
@@ -86,6 +90,7 @@ export default function Sidebar({ isOpen,name }: SidebarProps) {
                   <Button
                     variant="ghost"
                     className="w-full justify-start text-base font-medium"
+                    onClick={() => handleNavigation(item.href)}
                   >
                     <item.icon className="mr-3 h-5 w-5" />
                     {item.label}
