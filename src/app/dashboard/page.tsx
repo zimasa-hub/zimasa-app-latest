@@ -1,20 +1,34 @@
-import ComprehensivePatientHomeScreen from "@/components/ComprehensivePatientHomeScreen";
+import { Suspense } from 'react';
 import ErrorBoundary from "@/components/ErrorBoundary"
-import  ServiceProviderHomeScreenComponent  from "@/components/service-provider-components/service-provider-home-screen";
-import { getValidAccessToken, getServerSession } from '@/lib/utils/auth-utils';
-import { SetDynamicRoute } from "@/lib/utils/setDynamicRoute";
+import { getValidAccessToken, getServerSession, hasRole } from '@/lib/utils/auth-utils';
+import DashboardClient from '@/components/DashBoardClient';
+import { jwtDecode } from 'jwt-decode';
+
+interface DecodedToken {
+  sub: string
+  // Add other token claims as needed
+}
 
 export default async function Dashboard() {
   let name: string | null = null;
   let error: string | null = null;
+  let isProvider = false;
+  
+  let currentMemberId: string | null = null
+
+
   try {
     const session = await getServerSession();
+    const accessToken = await getValidAccessToken()
+    const decodedToken = jwtDecode<DecodedToken>(accessToken)
+    currentMemberId = decodedToken.sub
 
     if (session) {
       name = session.user.name;
-
-      console.log("SESSION : ",session)
-
+      console.log("SESSION : ", session);
+      
+      // Check if the user has the provider role
+      isProvider = await hasRole("provider");
     }
   } catch (authError) {
     console.error("Authentication error:", authError);
@@ -22,12 +36,17 @@ export default async function Dashboard() {
   }
 
   return (
-    <main className="flex-grow bg-white">
-      <SetDynamicRoute />
+    <Suspense fallback={<div>Loading...</div>}>
       <ErrorBoundary>
-        <ComprehensivePatientHomeScreen name={name} />
-        {/* <ServiceProviderHomeScreenComponent name={name}/> */}
+        <DashboardClient 
+          name={name} 
+          isProvider={isProvider} 
+          error={error}
+          currentMemberId={currentMemberId}
+        >
+       
+        </DashboardClient>
       </ErrorBoundary>
-    </main>
+    </Suspense>
   );
 }

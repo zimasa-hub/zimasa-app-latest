@@ -1,4 +1,6 @@
-import { ServiceType } from "../services/services"
+import { Member } from "../member/member"
+import { ProviderUserSpecialist } from "../providers/providers"
+import { ServiceAvailability, ServiceCategory, ServiceHandler, ServiceType } from "../services/services"
 
 export interface ProviderService {
   id: number
@@ -13,49 +15,9 @@ export interface ProviderService {
   isActive: boolean
   tags: string[]
   location: string
-  serviceCategory: {
-    id: number
-    name: string
-    description: string
-    serviceType: string
-  }
-  serviceHandlers: Array<{
-    id: number
-    isAvailable: boolean
-    providerUser: {
-      id: number
-      provider: {
-        id: number
-        name: string
-        description: string
-        contactEmail: string
-        contactPhone: string
-        address: string
-      }
-      member: {
-        id: number
-        username: string
-        email: string
-        firstName: string | null
-        lastName: string | null
-        phone: string | null
-      }
-      providerUserSpecialists: Array<{
-        id: number
-        specialist: {
-          id: number
-          name: string
-          description: string
-        }
-      }>
-    }
-  }>
-  serviceAvailability: Array<{
-    id: number
-    dayOfWeek: string
-    startTime: string
-    endTime: string
-  }>
+  serviceCategory: ServiceCategory
+  serviceHandlers: ServiceHandler[]
+  serviceAvailability: ServiceAvailability[]
 }
 
 export interface FilteredProvidersResponse {
@@ -100,7 +62,7 @@ export interface BookAppointmentScreenProps {
   providerServices: ProviderService[]
 }
 
-export type Appointment = {
+export type Book_Appointment = {
   providerService: number
   scheduleType: number
   appointmentDate: string

@@ -1,6 +1,6 @@
 // layout.tsx
 import { ReactNode } from 'react';
-import BottomNav from '../NavBars/consumer-bottomBar.tsx';
+import BottomNav from "../NavBars/consumer-bottomBar";
 
 
 

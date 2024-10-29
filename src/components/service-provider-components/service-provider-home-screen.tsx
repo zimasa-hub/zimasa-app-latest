@@ -18,13 +18,17 @@ import AddNewService from './add-new-service'
 import { UserNameProps } from '@/lib/interfaces/meals/interfaces'
 import Sidebar from '@/app/NavBars/consumer-sideBar'
 import { Appointment } from '@/lib/interfaces/appointments/appointments'
-import { DoctorsDataResponse } from '@/lib/interfaces/providers/doctors'
+import { DoctorsDataResponse } from '@/lib/interfaces/providers/providers'
+import AllAppointmentsView from './all-appointments-view'
 
-const ServiceProviderHomeScreenComponent: React.FC<UserNameProps> = ({ name }) => {
+const ServiceProviderHomeScreenComponent: React.FC<UserNameProps> = ({ name,currentMode, isProvider: initialIsProvider ,onModeSwitch,currentMemberId }) => {
+  
+  console.log("SUB : ", currentMemberId)
+
   const [showEmergencyAlert, setShowEmergencyAlert] = useState(true)
   const [showAddNewService, setShowAddNewService] = useState(false)
   const [showComposeNewMessage, setShowComposeNewMessage] = useState(false)
- 
+  const [isAllAppointmentsOpen, setIsAllAppointmentsOpen] = useState(false)
   const [showAddNewAppointmentTask, setShowAddNewAppointmentTask] = useState(false)
   const [showEmergencyAlertDetails, setShowEmergencyAlertDetails] = useState(false)
   const [activeTab, setActiveTab] = useState("appointments")
@@ -33,6 +37,8 @@ const ServiceProviderHomeScreenComponent: React.FC<UserNameProps> = ({ name }) =
   const totalEarnings = 500
   const outstandingPayments = 1200
   const progressPercentage = (totalEarnings / (totalEarnings + outstandingPayments)) * 100
+
+ 
 
 
   // if (showAddNewService) {
@@ -53,6 +59,20 @@ const ServiceProviderHomeScreenComponent: React.FC<UserNameProps> = ({ name }) =
     return <EmergencyAlertDetails onClose={() => setShowEmergencyAlertDetails(false)} />
   }
 
+  const getStatusBadgeColor = (status: string) => {
+    switch (status) {
+      case 'REQUESTED':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'SCHEDULED':
+        return 'bg-blue-100 text-blue-800';
+      case 'COMPLETED':
+        return 'bg-green-100 text-green-800';
+      case 'CANCELLED':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
 
   const fetchAppointments = async () => {
     try {
@@ -76,7 +96,13 @@ const ServiceProviderHomeScreenComponent: React.FC<UserNameProps> = ({ name }) =
 
   return (
     <div className="container mx-auto flex flex-col min-h-screen">
- <Sidebar isOpen={isSidebarOpen} name={name} />
+ <Sidebar 
+ isOpen={isSidebarOpen} 
+ name={name}
+ currentMode={currentMode} 
+ isProvider={initialIsProvider} 
+ onModeSwitch={onModeSwitch}/>
+
             {isSidebarOpen && (
               <div
                 className="fixed inset-0 bg-black bg-opacity-50 z-40"
@@ -88,12 +114,13 @@ const ServiceProviderHomeScreenComponent: React.FC<UserNameProps> = ({ name }) =
  {/* Top Bar */}
  <header className="bg-white ">
         <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-          <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
-            <Menu className="h-6 w-6" />
+
+        <Button variant="ghost" size="icon">
+            <Bell className="h-5 w-5" />
           </Button>
           <h1 className="text-xl font-semibold">Dashboard</h1>
-          <Button variant="ghost" size="icon">
-            <Bell className="h-5 w-5" />
+          <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
+            <Menu className="h-6 w-6" />
           </Button>
         </div>
       </header>
@@ -117,72 +144,79 @@ const ServiceProviderHomeScreenComponent: React.FC<UserNameProps> = ({ name }) =
 
          {/* Appointments and Tasks */}
          <section>
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-xl font-semibold">Appointments and Tasks</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Tabs defaultValue="appointments" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger 
-                value="appointments" 
-                className="data-[state=active]:bg-custom-green data-[state=active]:text-white"
-              >
-                Appointments
-              </TabsTrigger>
-              <TabsTrigger 
-                value="tasks"
-                className="data-[state=active]:bg-custom-green data-[state=active]:text-white"
-              >
-                Tasks
-              </TabsTrigger>
-            </TabsList>
-            <TabsContent value="appointments">
-            <ul className="space-y-4 mt-4">
-      {appointments.length > 0 ? (
-        appointments.map((appointment) => (
-          <li key={appointment.id} className="flex justify-between items-center">
-            <div>
-              <p className="font-semibold">{appointment.member.username}</p>
-              <p className="text-sm text-gray-500">{appointment.service.description}</p>
-              <p className="text-sm text-gray-500">
-                {new Date(appointment.appointmentDate).toLocaleDateString()} - {appointment.startTime}
-              </p>
-            </div>
-            <Badge>{appointment.status}</Badge>
-          </li>
-        ))
-      ) : (
-        <li>No upcoming appointments</li>
-      )}
-    </ul>
-              <Button variant="outline" className="w-full mt-4 text-custom-green border-custom-green hover:bg-custom-green/10">
-                View All Appointments <ChevronRight className="ml-2 h-4 w-4" />
-              </Button>
-            </TabsContent>
-            <TabsContent value="tasks">
-              <ul className="space-y-4 mt-4">
-                <li className="flex justify-between items-center">
+  <Card>
+    <CardHeader>
+      <CardTitle className="text-xl font-semibold">Appointments and Tasks</CardTitle>
+    </CardHeader>
+    <CardContent>
+      <Tabs defaultValue="appointments" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger 
+            value="appointments" 
+            className="data-[state=active]:bg-custom-green data-[state=active]:text-white"
+          >
+            Appointments
+          </TabsTrigger>
+          <TabsTrigger 
+            value="tasks"
+            className="data-[state=active]:bg-custom-green data-[state=active]:text-white"
+          >
+            Tasks
+          </TabsTrigger>
+        </TabsList>
+        <TabsContent value="appointments">
+        <ul className="space-y-4 lg:col-span-9">
+            {appointments.length > 0 ? (
+              appointments.map((appointment) => (
+                <li key={appointment.id} className="flex justify-between items-center relative">
                   <div>
-                    <p className="font-semibold">Follow-up Call with John Doe</p>
+                  <h3 className="font-semibold"> {appointment.member.firstName}  {appointment.member.lastName}</h3>
+           
+                    <p className="text-sm text-gray-500">{appointment.service.description}</p>
+                    <p className="text-sm text-gray-500">
+                      {new Date(appointment.appointmentDate).toLocaleDateString()} - {appointment.startTime}
+                    </p>
+                    <span className={`absolute top-2 right-2 px-2 py-1 rounded-full text-xs font-semibold ${getStatusBadgeColor(appointment.status)}`}>
+                      {appointment.status}
+                    </span>
                   </div>
-                  <Button className="bg-custom-green hover:bg-custom-green/90 text-white">Complete</Button>
                 </li>
-                <li className="flex justify-between items-center">
-                  <div>
-                    <p className="font-semibold">Update Session Notes for Jane Smith</p>
-                  </div>
-                  <Button className="bg-custom-green hover:bg-custom-green/90 text-white">Complete</Button>
-                </li>
-              </ul>
-              <Button variant="outline" className="w-full mt-4 text-custom-green border-custom-green hover:bg-custom-green/10">
-                View All Tasks <ChevronRight className="ml-2 h-4 w-4" />
-              </Button>
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
-    </section>
+              ))
+            ) : (
+              <li>No upcoming appointments</li>
+            )}
+          </ul>
+          <Button 
+            variant="outline" 
+            className="w-full mt-4 text-custom-green border-custom-green hover:bg-custom-green/10"
+            onClick={() => setIsAllAppointmentsOpen(true)}
+          >
+            View All Appointments <ChevronRight className="ml-2 h-4 w-4" />
+          </Button>
+        </TabsContent>
+        <TabsContent value="tasks">
+          <ul className="space-y-4 mt-4">
+            <li className="flex justify-between items-center">
+              <div>
+                <p className="font-normal">Follow-up Call with John Doe</p>
+              </div>
+              <Button className="bg-custom-green hover:bg-custom-green/90 text-white">Complete</Button>
+            </li>
+            <li className="flex justify-between items-center">
+              <div>
+                <p className="font-normal">Update Session Notes for Jane Smith</p>
+              </div>
+              <Button className="bg-custom-green hover:bg-custom-green/90 text-white">Complete</Button>
+            </li>
+          </ul>
+          <Button variant="outline" className="w-full mt-4 text-custom-green border-custom-green hover:bg-custom-green/10">
+            View All Tasks <ChevronRight className="ml-2 h-4 w-4" />
+          </Button>
+        </TabsContent>
+      </Tabs>
+    </CardContent>
+  </Card>
+</section>
 
         {/* Revenue Snapshot */}
          <section>
@@ -224,6 +258,12 @@ const ServiceProviderHomeScreenComponent: React.FC<UserNameProps> = ({ name }) =
         </Button>
       </footer>
             </div>
+
+            <AllAppointmentsView 
+        isOpen={isAllAppointmentsOpen} 
+        onClose={() => setIsAllAppointmentsOpen(false)} 
+        currentMemberId={currentMemberId}
+      />
  
     </div>
 

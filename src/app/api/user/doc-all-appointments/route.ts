@@ -36,24 +36,20 @@ export async function GET() {
     endDate.setDate(endDate.getDate() + 7)
     const endDateString = endDate.toISOString().split('T')[0]
 
-    const appointmentsUrl = `${process.env.NEXT_PUBLIC_APPOINTMENTS_SEARCH}?providerUserId=${providerUserId}&startDate=${currentDate}&endDate=${endDateString}`
+    const appointmentsUrl = `${process.env.NEXT_PUBLIC_APPOINTMENTS_SEARCH}?providerUserId=${providerUserId}`
     const appointmentsResponse = await axios.get<{ content: Appointment[] }>(appointmentsUrl, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
     })
 
-    // Sort appointments by date and time
-    const sortedAppointments = appointmentsResponse.data.content.sort((a, b) => {
-      const dateA = new Date(`${a.appointmentDate}T${a.startTime}`)
-      const dateB = new Date(`${b.appointmentDate}T${b.startTime}`)
-      return dateA.getTime() - dateB.getTime()
-    })
+    // Create a sanitized version of the response to avoid circular references
+    const sanitizedResponse = JSON.parse(JSON.stringify({
+      providerUserResponse: providerUserResponse.data,
+      appointmentsResponse: appointmentsResponse.data
+    }))
 
-    // Get the two most upcoming appointments
-    const upcomingAppointments = sortedAppointments.slice(0, 2)
-
-    return NextResponse.json({ appointments: upcomingAppointments }, { status: 200 })
+    return NextResponse.json(sanitizedResponse, { status: 200 })
   } catch (error: any) {
     console.error('Error in GET /api/appointments:', error)
     return NextResponse.json(

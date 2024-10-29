@@ -1,5 +1,6 @@
 import { decrypt, encrypt } from './encryption';
 import { cookies } from 'next/headers';
+import { jwtDecode } from 'jwt-decode';
 
 interface Session {
   user: any;
@@ -8,6 +9,14 @@ interface Session {
   refresh_token: string;
   expires_at: number;
   // Add other session properties as needed
+}
+
+interface DecodedToken {
+  resource_access: {
+    [key: string]: {
+      roles: string[];
+    };
+  };
 }
 
 export async function getValidAccessToken(): Promise<string> {
@@ -67,7 +76,9 @@ export async function getServerSession(): Promise<Session | null> {
   const sessionToken = cookies().get('session_token')?.value;
   if (!sessionToken) return null;
 
+  
   const session = global.sessions.get(sessionToken);
+  
   return session || null;
 }
 
@@ -91,4 +102,20 @@ export async function logAuthEvent(event: string, details: any) {
   } catch (error) {
     console.error('Error logging auth event:', error);
   }
+}
+
+export async function hasRole(role: string): Promise<boolean> {
+ const session = await getServerSession();
+  if (!session) return false;
+
+  const decodedToken = jwtDecode(decrypt(session.access_token)) as DecodedToken;
+  const resourceAccess = decodedToken.resource_access;
+
+  for (const resource in resourceAccess) {
+    if (resourceAccess[resource].roles.includes(role)) {
+      return true;
+    }
+  }
+
+  return false;
 }

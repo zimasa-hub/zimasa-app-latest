@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Bell, Calendar, FileText, Heart, Plus, Stethoscope, Users, Share2, MessageSquare, Trophy, ShoppingBag, CreditCard, Star, Utensils, Activity, Moon, Target, UserPlus, Shield, DollarSign, AlertTriangle, Menu } from "lucide-react"
+import { Bell, Calendar, FileText, Heart, Plus, Stethoscope, Users, Share2, MessageSquare, Trophy, ShoppingBag, CreditCard, Star, Utensils, Activity, Moon, Target, UserPlus, Shield, DollarSign, AlertTriangle, Menu, ChevronRight } from "lucide-react"
 import ManageDependentsScreen from './manage-dependents-screen'
 import BookAppointmentScreen from './book-appointment-screen'
 import ViewMedicalRecordsScreen from './view-medical-records-screen'
@@ -33,6 +33,7 @@ import { UserNameProps } from '@/lib/interfaces/meals/interfaces'
 import axios from 'axios'
 import AllAppointmentsView from './all-appointments-view'
 import { Appointment } from '@/lib/interfaces/appointments/appointments'
+import Carousel from './coverflow-animation'
 
 // Custom type for beforeinstallprompt event
 type BeforeInstallPromptEvent = Event & {
@@ -41,7 +42,7 @@ type BeforeInstallPromptEvent = Event & {
 }
 
 
-const ComprehensivePatientHomeScreen: React.FC<UserNameProps> = ({ name }) => {
+const ComprehensivePatientHomeScreen: React.FC<UserNameProps> = ({ name,currentMode,isProvider: initialIsProvider ,onModeSwitch }) => {
   const [healthScore, setHealthScore] = useState(75)
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null)
   const [isInstalled, setIsInstalled] = useState(false)
@@ -61,6 +62,22 @@ const ComprehensivePatientHomeScreen: React.FC<UserNameProps> = ({ name }) => {
   const [appointments, setAppointments] = useState<Appointment[]>([])
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
+
+  const getStatusBadgeColor = (status: string) => {
+    switch (status) {
+      case 'REQUESTED':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'SCHEDULED':
+        return 'bg-blue-100 text-blue-800';
+      case 'COMPLETED':
+        return 'bg-green-100 text-green-800';
+      case 'CANCELLED':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+  
   useEffect(() => {
     setIsHydrated(true)
   }, [])
@@ -161,17 +178,25 @@ const ComprehensivePatientHomeScreen: React.FC<UserNameProps> = ({ name }) => {
         <div className="mx-auto p-0">
           <div className="container mx-auto bg-white">
             <header className="flex justify-between items-center p-4 border-b bg-white">
+            <Button variant="ghost" size="icon">
+                <Bell className="h-5 w-5" />
+                <span className="sr-only">Notifications</span>
+              </Button>
+              <h1 className="text-lg font-semibold">Dashboard</h1>
+             
               <Button variant="ghost" size="icon" onClick={toggleSidebar}>
                 <Menu className="h-6 w-6" />
                 <span className="sr-only">Menu</span>
               </Button>
-              <h1 className="text-lg font-semibold">Dashboard</h1>
-              <Button variant="ghost" size="icon">
-                <Bell className="h-5 w-5" />
-                <span className="sr-only">Notifications</span>
-              </Button>
             </header>
-            <Sidebar isOpen={isSidebarOpen} name={name} />
+
+            <Sidebar 
+            isOpen={isSidebarOpen} 
+            name={name}
+            isProvider={initialIsProvider} 
+            currentMode={currentMode} 
+            onModeSwitch={onModeSwitch} />
+
             {isSidebarOpen && (
               <div
                 className="fixed inset-0 bg-black bg-opacity-50 z-40"
@@ -190,46 +215,77 @@ const ComprehensivePatientHomeScreen: React.FC<UserNameProps> = ({ name }) => {
                 </CardContent>
               </Card>
 
-              <Card className="mb-4">
-                <CardHeader>
-                  <CardTitle className="text-lg">Upcoming Appointments</CardTitle>
-                </CardHeader>
-                <CardContent className="grid gap-4 p-4 lg:p-8 grid-cols-1 lg:grid-cols-12 justify-center items-center">
-                  <div className="grid grid-cols-1 lg:grid-cols-12 items-start gap-4 w-full col-span-12">
-                    <ul className="space-y-4 lg:col-span-9">
-                      {appointments.map((appointment) => (
-                        <li key={appointment.id} className="grid grid-cols-12 items-center gap-4 mb-1">
-                          <div className="col-span-8 flex items-center gap-4">
-                            <Calendar className="h-6 w-6 text-teal-600" />
-                            <div className="flex flex-col">
-                              <span className="font-medium">
-                                Dr. {appointment.service.serviceHandlers[0]?.providerUser.member.username || 'Unknown'}
-                              </span>
-                              <p className="text-sm text-muted-foreground">
-                                {formatAppointmentDate(appointment.appointmentDate, appointment.startTime)}
-                              </p>
-                            </div>
-                          </div>
-                          <Badge variant="secondary" className="col-span-4 ml-auto">
-                            {appointment.scheduleType.name}
-                          </Badge>
-                        </li>
-                      
-                      ))}
-                      {appointments.length === 0 && (
-                        <li className="text-center text-muted-foreground">No upcoming appointments</li>
-                      )}
-                    </ul>
+              <Card className='mb-4'>
+    <CardHeader>
+      <CardTitle className="text-xl font-semibold">Appointments and Tasks</CardTitle>
+    </CardHeader>
+    <CardContent>
+      <Tabs defaultValue="appointments" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger 
+            value="appointments" 
+            className="data-[state=active]:bg-custom-green data-[state=active]:text-white"
+          >
+            Appointments
+          </TabsTrigger>
+          <TabsTrigger 
+            value="tasks"
+            className="data-[state=active]:bg-custom-green data-[state=active]:text-white"
+          >
+            Tasks
+          </TabsTrigger>
+        </TabsList>
+        <TabsContent value="appointments">
+        <ul className="space-y-4 lg:col-span-9">
+            {appointments.length > 0 ? (
+              appointments.map((appointment) => (
+                <li key={appointment.id} className="flex justify-between items-center relative">
+                  <div>
+                  <h3 className="font-semibold">  Dr. {appointment.member.firstName}  {appointment.member.lastName}</h3>
+           
+                    <p className="text-sm text-gray-500">{appointment.service.description}</p>
+                    <p className="text-sm text-gray-500">
+                      {new Date(appointment.appointmentDate).toLocaleDateString()} - {appointment.startTime}
+                    </p>
+                    <span className={`absolute top-2 right-2 px-2 py-1 rounded-full text-xs font-semibold ${getStatusBadgeColor(appointment.status)}`}>
+                      {appointment.status}
+                    </span>
                   </div>
-                  <div className="w-full col-span-12 flex justify-center items-center text-center lg:justify-start">
-                    <Button
-                      onClick={() => setIsAllAppointmentsOpen(true)}
-                      className="w-full lg:w-auto h-10 items-center text-center justify-center rounded-md bg-teal-600 hover:bg-teal-700 text-white"
-                    >
-                      View All Appointments
-                    </Button>
-                  </div>
-                </CardContent>
+                </li>
+              ))
+            ) : (
+              <li>No upcoming appointments</li>
+            )}
+          </ul>
+          <Button 
+            variant="outline" 
+            className="w-full mt-4 text-custom-green border-custom-green hover:bg-custom-green/10"
+            onClick={() => setIsAllAppointmentsOpen(true)}
+          >
+            View All Appointments <ChevronRight className="ml-2 h-4 w-4" />
+          </Button>
+        </TabsContent>
+        <TabsContent value="tasks">
+          <ul className="space-y-4 mt-4">
+            <li className="flex justify-between items-center">
+              <div>
+                <p className="font-normal">Follow-up Call with John Doe</p>
+              </div>
+              <Button className="bg-custom-green hover:bg-custom-green/90 text-white">Complete</Button>
+            </li>
+            <li className="flex justify-between items-center">
+              <div>
+                <p className="font-normal">Update Session Notes for Jane Smith</p>
+              </div>
+              <Button className="bg-custom-green hover:bg-custom-green/90 text-white">Complete</Button>
+            </li>
+          </ul>
+          <Button variant="outline" className="w-full mt-4 text-custom-green border-custom-green hover:bg-custom-green/10">
+            View All Tasks <ChevronRight className="ml-2 h-4 w-4" />
+          </Button>
+        </TabsContent>
+      </Tabs>
+    </CardContent>
               </Card>
 
               <AllAppointmentsView 
@@ -331,6 +387,9 @@ const ComprehensivePatientHomeScreen: React.FC<UserNameProps> = ({ name }) => {
                   </Tabs>
                 </CardContent>
               </Card>
+
+
+
             </main>
           </div>
         </div>
@@ -348,7 +407,7 @@ const ComprehensivePatientHomeScreen: React.FC<UserNameProps> = ({ name }) => {
                 <Label htmlFor="doctor" className="text-right">
                   Doctor
                 </Label>
-                <Input id="doctor" value={selectedAppointment?.service.serviceHandlers[0]?.providerUser.member.username || ''} className="col-span-3" readOnly />
+                <Input id="doctor" value={selectedAppointment?.service.serviceHandlers[0]?.providerUser.member.firstName || ''} className="col-span-3" readOnly />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="type" className="text-right">

@@ -4,9 +4,9 @@ import { SetDynamicRoute } from '@/lib/utils/setDynamicRoute'
 import ErrorBoundary from '@/components/ErrorBoundary'
 import axios from 'axios'
 import { jwtDecode } from 'jwt-decode';
-import { PageableResponse, ServiceType } from '@/lib/interfaces/services/services'
+import {  ServiceType } from '@/lib/interfaces/services/services'
 import { FilteredProvidersResponse, ProviderService, ScheduleType } from '@/lib/interfaces/provider-services/provider-service'
-
+import { PageableResponse } from '@/lib/interfaces/Pageable/pagination'
 
 
 interface DecodedToken {
@@ -94,6 +94,7 @@ export default async function Home() {
   try {
     const accessToken = await getValidAccessToken()
     const decodedToken = jwtDecode<DecodedToken>(accessToken)
+
     currentMemberId = decodedToken.sub
 
     const [services, types, serviceTypesData] = await Promise.all([

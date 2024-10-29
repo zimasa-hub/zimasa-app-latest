@@ -1,5 +1,6 @@
-import { Member } from "../member/member"
-import { Service } from "../services/services"
+import { Member } from "../member/member";
+import { ProviderService } from "../provider-services/provider-service";
+import { Service } from "../services/services";
 
 
 interface ScheduleType {
@@ -10,19 +11,44 @@ interface ScheduleType {
   breakDurationMinutes: number;
 }
 
-
 export interface Appointment {
-    id: number
-    member: Member
-    service: Service
-    scheduleType: ScheduleType
-    startTime: string
-    endTime: string
-    appointmentDate: string
-    status: string
-    notes: string
-    createdAt: string
-    updatedAt: string
-  }
-
+  id: number;
+  startTime: string;
+  endTime: string;
+  appointmentDate: string;
+  notes: string;
+  status: string;
+  actionReason: string | null;
+  member: Member;
   
+  service: Service;
+  scheduleType: ScheduleType;
+  createdAt: string;
+  updatedAt: string;
+}
+
+
+
+export interface AvailableSlot {
+  date: string;
+  timeSlots: TimeSlot[] | [];
+}
+
+export interface TimeSlot {
+  startTime: string;
+  endTime: string;
+  booked: boolean;
+}
+
+// The API response will be an array of AvailableSlot
+export type AvailableSlotsResponse = AvailableSlot[];
+
+export type ProviderInfo = {
+  id: number
+  name: string
+  address: string
+  member: Member
+  serviceCategories: Set<string>
+  services: ProviderService[]
+}
+

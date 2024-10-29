@@ -27,6 +27,8 @@ export default function Component({ isOpen, onClose }: AllAppointmentsViewProps)
       try {
         const response = await axios.get(`/api/user/book-appointment?localDate=${selectedDate}`)
         setAppointments(response.data)
+
+        console.log("APPOINTMENTS :", response)
       } catch (error) {
         console.error('Error fetching appointments:', error)
       }
@@ -83,22 +85,7 @@ export default function Component({ isOpen, onClose }: AllAppointmentsViewProps)
           <div className="w-6" /> {/* Spacer for alignment */}
         </header>
         <div className="p-4 space-y-4">
-          <div className="flex space-x-2">
-            <Button
-              variant={dateType === 'single' ? 'default' : 'outline'}
-              onClick={() => setDateType('single')}
-              className={`flex-1 ${dateType === 'single' ? 'bg-custom-green text-white hover:bg-custom-green' : 'text-custom-green border-custom-green'}`}
-            >
-              Single Day
-            </Button>
-            <Button
-              variant={dateType === 'range' ? 'default' : 'outline'}
-              onClick={() => setDateType('range')}
-              className={`flex-1 ${dateType === 'range' ? 'bg-custom-green text-white hover:bg-custom-green' : 'text-custom-green border-custom-green'}`}
-            >
-              Date Range
-            </Button>
-          </div>
+        
           <Input
             type="date"
             value={selectedDate}
@@ -137,7 +124,7 @@ export default function Component({ isOpen, onClose }: AllAppointmentsViewProps)
                 <div className="flex justify-between items-start">
                   <div>
                     <h3 className="font-semibold">
-                      Dr. {appointment.service.serviceHandlers[0]?.providerUser.member.username || 'Unknown'}
+                      Dr. {appointment.service.serviceHandlers[0]?.providerUser.member.firstName || 'Unknown'} {appointment.service.serviceHandlers[0]?.providerUser.member.lastName || ''}
                     </h3>
                     <p className="text-sm text-muted-foreground">{appointment.service.serviceCategory.name}</p>
                   </div>

@@ -7,6 +7,7 @@ import { UserNameProps } from "@/lib/interfaces/meals/interfaces"
 
 interface LoginFunctionalityProps extends UserNameProps {
   name: string | null
+  currentMemberId: string | null;
 }
 
 const LoginFunctionality: React.FC<LoginFunctionalityProps> = ({ name }) => {

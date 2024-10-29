@@ -1,3 +1,6 @@
+import { Member } from "../member/member"
+import { ProviderServicePaymentMethod, ProviderUser } from "../providers/providers"
+
 export interface PaymentMethod {
     id: number
     method: string
@@ -11,75 +14,52 @@ export interface PaymentMethod {
     name: string
     description: string
   }
+
+ export interface ServiceHandler {
+    id: number;
+    isAvailable: boolean;
+    providerUser: ProviderUser;
+    serviceName: string | null;
+  }
   
  export interface ServiceCategory {
-    id: number
-    name: string
-    description: string
-    serviceType: ServiceType
-  }
-  
- export interface PageableResponse<T> {
-    content: T[]
-    pageable: {
-      pageNumber: number
-      pageSize: number
-      sort: {
-        empty: boolean
-        unsorted: boolean
-        sorted: boolean
-      }
-      offset: number
-      paged: boolean
-      unpaged: boolean
-    }
-    size: number
-    number: number
-    sort: {
-      empty: boolean
-      unsorted: boolean
-      sorted: boolean
-    }
-    numberOfElements: number
-    first: boolean
-    last: boolean
-    empty: boolean
+    id: number;
+    name: string;
+    description: string;
+    serviceType: string;
   }
 
-  export interface Service {
-    id: number
-    name: string | null
-    description: string
-    maximumCapacity: number
-    price: number
-    durationMins: number
-    availability: string
-    startDate: string
-    endDate: string
-    insuranceAccepted: boolean
-    isActive: boolean
-    tags: string[]
-    location: string
-    createdAt: string | null
-    updatedAt: string | null
-    serviceCategory: ServiceCategory
-    providerUser: any | null
-    providerServicePaymentMethods: Array<{
-      id: number
-      paymentMethod: PaymentMethod
-    }>
-    serviceInsurers: any[]
-    serviceHandlers: Array<{
-      id: number
-      isAvailable: boolean
-      providerUser: any
-      serviceName: string | null
-    }>
-    serviceAvailability: Array<{
-      id: number
-      dayOfWeek: string
-      startTime: string
-      endTime: string
-      serviceName: string | null
-    }>
+ export interface ServiceAvailability {
+    id: number;
+    dayOfWeek: string;
+    startTime: string;
+    endTime: string;
+   
+    serviceName: string | null;
   }
+  
+
+  export interface Service {
+    id: number;
+    name: string | null;
+    description: string;
+    maximumCapacity: number;
+    price: number;
+    durationMins: number;
+    availability: string;
+    startDate: string;
+    endDate: string;
+    insuranceAccepted: boolean;
+    isActive: boolean;
+    tags: string[];
+    location: string;
+    createdAt: string | null;
+    updatedAt: string | null;
+    serviceCategory: ServiceCategory;
+    providerUser: ProviderUser | null;
+    providerServicePaymentMethods: ProviderServicePaymentMethod[];
+    serviceInsurers: any[];
+    serviceHandlers: ServiceHandler[];
+    serviceAvailability: ServiceAvailability[];
+  }
+ 

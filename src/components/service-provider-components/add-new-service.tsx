@@ -233,7 +233,7 @@ export default function AddNewServiceComponent({ serviceTypes, paymentMethods, p
 
 
   return (
-    <div className="  bg-white min-h-screen lg:max-w-3xl">
+    <div className="  bg-white min-h-screen lg:max-w-3xl mx-auto">
       <header className="bg-teal-600 text-white p-4 flex items-center">
       <Button onClick={handleBackButton} variant="ghost" className="mr-4">
           <ArrowLeft className="h-6 w-6" />

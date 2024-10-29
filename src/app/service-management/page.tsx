@@ -4,7 +4,8 @@ import ErrorBoundary from '@/components/ErrorBoundary'
 import ServiceManagement from '@/components/service-provider-components/service-management'
 import axios from 'axios'
 import { jwtDecode } from 'jwt-decode'
-import { PaymentMethod, PageableResponse, ServiceType, Service } from '@/lib/interfaces/services/services'
+import { PaymentMethod, ServiceType, Service } from '@/lib/interfaces/services/services'
+import { PageableResponse } from '@/lib/interfaces/Pageable/pagination'
 
 interface DecodedToken {
   sub: string

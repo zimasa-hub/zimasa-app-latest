@@ -52,7 +52,7 @@ export default async function Home() {
             </div>
           </div>
         ) : (
-          <LoginFunctionality name={name} />
+          <LoginFunctionality name={name} currentMemberId={null}  />
         )}
       </ErrorBoundary>
     </main>
