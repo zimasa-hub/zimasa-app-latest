@@ -7,6 +7,7 @@ import ComprehensivePatientHomeScreen from "@/components/ComprehensivePatientHom
 import ServiceProviderHomeScreenComponent from "@/components/service-provider-components/service-provider-home-screen";
 import { SetDynamicRoute } from '@/lib/utils/setDynamicRoute';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { SidebarProvider } from './ui/sidebar';
 
 interface DashboardClientProps {
   name: string | null;
@@ -34,7 +35,9 @@ export default function DashboardClient({ name, isProvider: initialIsProvider, e
   }, [error]);
 
   return (
-    <div className="flex flex-col min-h-screen">
+  
+        <div className="flex flex-col min-h-screen">
+            <SidebarProvider>
       {showError && (
         <Alert variant="destructive" className="mb-4">
           <AlertCircle className="h-4 w-4" />
@@ -44,7 +47,7 @@ export default function DashboardClient({ name, isProvider: initialIsProvider, e
       )}
       
         <main className="flex-grow bg-white">
-          <SetDynamicRoute />
+       
           {currentMode === 'provider' ? (
             <ServiceProviderHomeScreenComponent 
             isProvider={initialIsProvider} 
@@ -63,7 +66,10 @@ export default function DashboardClient({ name, isProvider: initialIsProvider, e
             />
           )}
         </main>
+        </SidebarProvider>
       </div>
+   
+    
    
   );
 }

@@ -14,7 +14,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { MapPin, Calendar as CalendarIcon, FileText, ChevronDown, ChevronUp, Search, Filter, Clock, User, Stethoscope, Tag } from 'lucide-react'
 import axios from 'axios'
 import { ServiceCategory, ServiceType, ServiceHandler, ServiceAvailability } from '@/lib/interfaces/services/services'
-import { format, parse, addMinutes, startOfMonth, endOfMonth } from 'date-fns'
+import { format, parse, addMinutes, startOfMonth, endOfMonth, isBefore, startOfDay } from 'date-fns'
 import { Book_Appointment, BookAppointmentScreenProps, FilteredProvidersResponse, ProviderService } from '@/lib/interfaces/provider-services/provider-service'
 import { Member } from '@/lib/interfaces/member/member'
 import { AvailableSlot, ProviderInfo } from '@/lib/interfaces/appointments/appointments'
@@ -35,6 +35,7 @@ export default function Component({ scheduleTypes, currentMemberId, serviceTypes
   const [availableTimeSlots, setAvailableTimeSlots] = useState<AvailableSlot[]>([])
   const [availableDates, setAvailableDates] = useState<string[]>([])
   const [isLoadingSlots, setIsLoadingSlots] = useState(false)
+  const [isSearchResultsReceived, setIsSearchResultsReceived] = useState(false)
 
   const handleProviderSelect = async (provider: ProviderService) => {
     setSelectedProvider(provider)
@@ -62,7 +63,8 @@ export default function Component({ scheduleTypes, currentMemberId, serviceTypes
       if (slotsForDate) {
         setAvailableTimeSlots([slotsForDate]);
       } else {
-        setAvailableTimeSlots([]);
+        // If no slots are found for the selected date, fetch them
+        fetchAvailableSlots(selectedProvider!.id, date);
       }
     } else {
       setAvailableTimeSlots([]);
@@ -89,6 +91,15 @@ export default function Component({ scheduleTypes, currentMemberId, serviceTypes
       const availableSlots = response.data
       setAvailableTimeSlots(availableSlots)
       setAvailableDates(availableSlots.filter(slot => slot.timeSlots.some(ts => !ts.booked)).map(slot => slot.date))
+      
+      // If a date is selected, update the available time slots for that date
+      if (selectedDate) {
+        const formattedDate = format(selectedDate, 'dd/MM/yy');
+        const slotsForSelectedDate = availableSlots.find(slot => slot.date === formattedDate);
+        if (slotsForSelectedDate) {
+          setAvailableTimeSlots([slotsForSelectedDate]);
+        }
+      }
     } catch (error) {
       console.error('Error fetching available slots:', error)
     } finally {
@@ -126,9 +137,11 @@ export default function Component({ scheduleTypes, currentMemberId, serviceTypes
         }
       })
       setFilteredProviders(response.data.content)
+      setIsSearchResultsReceived(true)
     } catch (error) {
       console.error('Error fetching filtered providers:', error)
       setFilteredProviders([])
+      setIsSearchResultsReceived(true)
     }
   }
 
@@ -138,6 +151,7 @@ export default function Component({ scheduleTypes, currentMemberId, serviceTypes
       fetchServiceCategories(serviceTypes[0].id)
     }
     setFilteredProviders(providerServices)
+
   }, [serviceTypes, providerServices])
 
   const displayedProviders = useMemo(() => {
@@ -324,6 +338,7 @@ export default function Component({ scheduleTypes, currentMemberId, serviceTypes
             </CardContent>
           </Card>
           <Card className="rounded-[5px] shadow-lg">
+            
             <CardHeader>
               <CardTitle className="text-lg font-semibold text-primary flex items-center">
                 <User className="w-6 h-6 mr-2" />
@@ -335,7 +350,7 @@ export default function Component({ scheduleTypes, currentMemberId, serviceTypes
                 {displayedProviders.map((provider) => (
                   <div
                     key={provider.id}
-                    className="flex flex-col space-y-3 p-4 border-b last:border-b-0 hover:bg-gray-50 transition-colors duration-200"
+                    className="flex flex-col space-y-3 p-4 border-b last:border-b-0 hover:bg-gray-50  transition-colors duration-200"
                   >
                     <div className="flex items-center space-x-4">
                       <Avatar className="w-12 h-12">
@@ -375,15 +390,16 @@ export default function Component({ scheduleTypes, currentMemberId, serviceTypes
                       {provider.address}
                     </div>
                     <div className="flex justify-between items-center">
-                      <Button
-                        onClick={() =>
-                          handleProviderSelect(provider.services[0])
-                        }
-                        className="bg-custom-green rounded-[5px]"
-                        disabled={!selectedServiceCategory}
-                      >
-                        View Profile
-                      </Button>
+                      {isSearchResultsReceived && (
+                        <Button
+                          onClick={() =>
+                            handleProviderSelect(provider.services[0])
+                          }
+                          className="bg-custom-green rounded-[5px]"
+                        >
+                          View Profile
+                        </Button>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -412,7 +428,7 @@ export default function Component({ scheduleTypes, currentMemberId, serviceTypes
             <div className="flex flex-col items-center space-y-4">
               <Avatar className="w-24 h-24">
                 <AvatarImage
-                  src="/placeholder.svg?height=100&width=100"
+                  src="/male_doc.png?height=100&width=100"
                   alt={`Dr. ${selectedProvider.serviceHandlers[0]?.providerUser.member.username}`}
                 />
                 <AvatarFallback>
@@ -480,21 +496,24 @@ export default function Component({ scheduleTypes, currentMemberId, serviceTypes
                 Select Appointment Date
               </h3>
               <Calendar
-              mode="single"
-              selected={selectedDate}
-              onSelect={handleDateSelect}
-              className="rounded-[5px] border border-gray-200 p-3"
-              disabled={(date) => !availableDates.includes(format(date, 'dd/MM/yy'))}
-              modifiers={{
-                available: (date) => availableDates.includes(format(date, 'dd/MM/yy')),
-                selected: (date) => selectedDate !== undefined && format(date, 'dd/MM/yy') === format(selectedDate, 'dd/MM/yy')
-              }}
-              modifiersStyles={{
-                available: { backgroundColor: 'rgba(0, 255, 0, 0.1)' },
-                selected: { backgroundColor: 'var(--custom-green)', color: 'white' }
-              }}
-              onMonthChange={(date) => fetchAvailableSlots(selectedProvider.id, date)}
-            />
+                mode="single"
+                selected={selectedDate}
+                onSelect={handleDateSelect}
+                className="rounded-[5px] border border-gray-200 p-3"
+                disabled={(date) => 
+                  isBefore(date, startOfDay(new Date())) || 
+                  !availableDates.includes(format(date, 'dd/MM/yy'))
+                }
+                modifiers={{
+                  available: (date) => availableDates.includes(format(date, 'dd/MM/yy')),
+                  selected: (date) => selectedDate !== undefined && format(date, 'dd/MM/yy') === format(selectedDate, 'dd/MM/yy')
+                }}
+                modifiersStyles={{
+                  available: { backgroundColor: 'rgba(0, 255, 0, 0.1)' },
+                  selected: { backgroundColor: 'var(--custom-green)', color: 'white' }
+                }}
+                onMonthChange={(date) => fetchAvailableSlots(selectedProvider.id, date)}
+              />
             </div>
             {isLoadingSlots ? (
               <div className="text-center">
@@ -506,7 +525,7 @@ export default function Component({ scheduleTypes, currentMemberId, serviceTypes
                   <h3 className="font-semibold text-lg text-primary mb-2">
                     Available Time Slots
                   </h3>
-                  {availableTimeSlots.length > 0 ? (
+                  {availableTimeSlots.length > 0 && availableTimeSlots[0].timeSlots.length > 0 ? (
                     <div className="grid grid-cols-2 gap-2">
                       {availableTimeSlots[0].timeSlots
                         .filter((slot) => !slot.booked)
@@ -531,7 +550,10 @@ export default function Component({ scheduleTypes, currentMemberId, serviceTypes
               )
             )}
             <Button
-              onClick={() => setStep("search")}
+             onClick={() => {
+              setStep("search");
+             
+            }}            
               variant="outline"
               className="w-full rounded-[5px]"
             >
@@ -542,10 +564,7 @@ export default function Component({ scheduleTypes, currentMemberId, serviceTypes
         </Card>
       )}
 
-      {step === "form" &&
-        selectedProvider &&
-        selectedDate &&
-        selectedTimeSlot && (
+      {step === "form" && selectedProvider && selectedDate && selectedTimeSlot && (
           <Card className="rounded-[5px] shadow-lg">
             <CardHeader>
               <CardTitle className="text-2xl font-semibold text-primary flex items-center">

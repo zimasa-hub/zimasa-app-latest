@@ -38,6 +38,7 @@ export default async function Dashboard() {
   return (
     <Suspense fallback={<div>Loading...</div>}>
       <ErrorBoundary>
+     
         <DashboardClient 
           name={name} 
           isProvider={isProvider} 

@@ -1,19 +1,30 @@
-"use client"
+'use client'
 
 import { useState, useEffect } from 'react'
-import { useSession, signIn, signOut } from "next-auth/react"
+import { useSession, signOut } from "next-auth/react"
 import Head from 'next/head'
+import { useRouter } from "next/navigation"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Bell, Calendar, FileText, Heart, Plus, Stethoscope, Users, Share2, MessageSquare, Trophy, ShoppingBag, CreditCard, Star, Utensils, Activity, Moon, Target, UserPlus, Shield, DollarSign, AlertTriangle, Menu, ChevronRight } from "lucide-react"
+import { Bell, Calendar, FileText, Heart, Plus, Stethoscope, Users, Share2, MessageSquare, Trophy, ShoppingBag, CreditCard, Star, Utensils, Activity, Moon, Target, UserPlus, Shield, DollarSign, AlertTriangle, Menu, ChevronRight, Home, BookOpen, Bookmark, User, LogOut, PanelLeft } from "lucide-react"
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarProvider,
+  SidebarTrigger,
+  useSidebar
+} from "@/components/ui/sidebar"
 import ManageDependentsScreen from './manage-dependents-screen'
 import BookAppointmentScreen from './book-appointment-screen'
 import ViewMedicalRecordsScreen from './view-medical-records-screen'
@@ -26,23 +37,37 @@ import MakePaymentScreen from './make-payment-screen'
 import dynamic from 'next/dynamic'
 const HealthStatusIcons = dynamic(() => import('./HealthStatusIcons'), { ssr: false })
 
-import Sidebar from '../app/NavBars/consumer-sideBar'
 import DashboardSkeleton from './dashboard-skeleton'
-import Link from 'next/link'
 import { UserNameProps } from '@/lib/interfaces/meals/interfaces'
 import axios from 'axios'
 import AllAppointmentsView from './all-appointments-view'
 import { Appointment } from '@/lib/interfaces/appointments/appointments'
-import Carousel from './coverflow-animation'
 
-// Custom type for beforeinstallprompt event
 type BeforeInstallPromptEvent = Event & {
   prompt: () => void
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>
 }
 
+async function keycloakSessionLogOut() {
+  try {
+    const response = await fetch(`/api/auth/signout`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const data = await response.json();
+    return data;
+  } catch (err) {
+    console.error("Logout error:", err);
+    throw err;
+  }
+}
 
-const ComprehensivePatientHomeScreen: React.FC<UserNameProps> = ({ name,currentMode,isProvider: initialIsProvider ,onModeSwitch }) => {
+const ComprehensivePatientHomeScreen: React.FC<UserNameProps> = ({ name, currentMode, isProvider: initialIsProvider, onModeSwitch }) => {
   const [healthScore, setHealthScore] = useState(75)
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null)
   const [isInstalled, setIsInstalled] = useState(false)
@@ -60,8 +85,10 @@ const ComprehensivePatientHomeScreen: React.FC<UserNameProps> = ({ name,currentM
   const [isAllAppointmentsOpen, setIsAllAppointmentsOpen] = useState(false)
   const [isHydrated, setIsHydrated] = useState(false)
   const [appointments, setAppointments] = useState<Appointment[]>([])
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
+  const router = useRouter()
 
+  const { open, setOpen, toggleSidebar } = useSidebar()
 
   const getStatusBadgeColor = (status: string) => {
     switch (status) {
@@ -159,10 +186,37 @@ const ComprehensivePatientHomeScreen: React.FC<UserNameProps> = ({ name,currentM
     setIsRescheduleModalOpen(false)
   }
 
-  const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen)
+  const handleNavigation = (href: string) => {
+    router.push(href);
+    setOpen(false);
+  };
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      await keycloakSessionLogOut();
+      await signOut({ callbackUrl: "/" });
+    } catch (error) {
+      console.error("Logout failed:", error);
+      alert("Logout failed. Please try again.");
+    } finally {
+      setIsLoggingOut(false);
+      window.location.href = "/";
+    }
+  };
+
+  const navItems = [
+    { icon: User, label: 'Profile', href: '/profile' },
+    { icon: BookOpen, label: 'Topics', href: '/topics' },
+    { icon: MessageSquare, label: 'Messages', href: '/messages' },
+    { icon: Bell, label: 'Notifications', href: '/notifications' },
+    { icon: Bookmark, label: 'Bookmarks', href: '/bookmarks' },
+  ]
+
 
   return (
     <>
+   
       <Head>
         <title>Zimasa Health Dashboard</title>
         <meta name="description" content="Manage your health and wellness with Zimasa" />
@@ -177,34 +231,82 @@ const ComprehensivePatientHomeScreen: React.FC<UserNameProps> = ({ name,currentM
       ) : (
         <div className="mx-auto p-0">
           <div className="container mx-auto bg-white">
-            <header className="flex justify-between items-center p-4 border-b bg-white">
-            <Button variant="ghost" size="icon">
+            <header className="flex justify-between items-center p-2 border-b bg-white">
+              <Button variant="ghost" size="icon">
                 <Bell className="h-5 w-5" />
                 <span className="sr-only">Notifications</span>
               </Button>
               <h1 className="text-lg font-semibold">Dashboard</h1>
-             
-              <Button variant="ghost" size="icon" onClick={toggleSidebar}>
-                <Menu className="h-6 w-6" />
-                <span className="sr-only">Menu</span>
-              </Button>
+              <SidebarTrigger />
             </header>
-
-            <Sidebar 
-            isOpen={isSidebarOpen} 
-            name={name}
-            isProvider={initialIsProvider} 
-            currentMode={currentMode} 
-            onModeSwitch={onModeSwitch} />
-
-            {isSidebarOpen && (
-              <div
-                className="fixed inset-0 bg-black bg-opacity-50 z-40"
-                onClick={() => setIsSidebarOpen(false)}
-              />
+            {open && (
+              <>
+              
+              </>
             )}
+            <Sidebar side="right">
+              <SidebarHeader className="p-4 border-b">
+                <div className="flex items-center">
+                  <div className="relative">
+                    <img
+                      src="/male_doc.png?height=48&width=48"
+                      alt="User avatar"
+                      className="w-12 h-12 rounded-full border-2 border-primary"
+                    />
+                    <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></span>
+                  </div>
+                  <div className="ml-4">
+                    <h2 className="font-semibold text-lg">{name || "Guest"}</h2>
+                    <p className="text-sm text-muted-foreground">Zimasa Member</p>
+                  </div>
+                </div>
+              </SidebarHeader>
+              <SidebarContent>
+                <ScrollArea className="flex-grow">
+                  <nav className="p-4">
+                    <ul className="space-y-2">
+                      {navItems.map((item, index) => (
+                        <li key={index}>
+                          <Button
+                            variant="ghost"
+                            className="w-full justify-start text-base font-medium"
+                            onClick={() => handleNavigation(item.href)}
+                          >
+                            <item.icon className="mr-3 h-5 w-5" />
+                            {item.label}
+                          </Button>
+                        </li>
+                      ))}
+                    </ul>
+                  </nav>
+                </ScrollArea>
+              </SidebarContent>
+              <SidebarFooter>
+                {initialIsProvider && (
+                  <div className="p-4 border-t">
+                    <Button
+                      onClick={onModeSwitch}
+                      className="w-full bg-white border-[0.1rem] border-primary text-primary hover:bg-primary/10 rounded-md h-8 flex items-center justify-center"
+                    >
+                      Switch to {currentMode === 'provider' ? 'Consumer' : 'Provider'} Mode 
+                    </Button>
+                  </div>
+                )}
+                <div className="p-4 border-t">
+                  <Button 
+                    variant="outline"
+                    onClick={handleLogout}
+                    disabled={isLoggingOut}
+                    className="w-full justify-start text-base font-medium"
+                  >
+                    <LogOut className="mr-3 h-5 w-5" />
+                    {isLoggingOut ? 'Logging out...' : 'Log out'}
+                  </Button>
+                </div>
+              </SidebarFooter>
+            </Sidebar>
 
-            <main className="p-4">
+            <main className="w-auto p-4">
               <h3 className="text-lg font-semibold mb-2">Welcome, {name || "Guest"}</h3>
               <Card className="mb-4">
                 <CardHeader>
@@ -216,76 +318,76 @@ const ComprehensivePatientHomeScreen: React.FC<UserNameProps> = ({ name,currentM
               </Card>
 
               <Card className='mb-4'>
-    <CardHeader>
-      <CardTitle className="text-xl font-semibold">Appointments and Tasks</CardTitle>
-    </CardHeader>
-    <CardContent>
-      <Tabs defaultValue="appointments" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger 
-            value="appointments" 
-            className="data-[state=active]:bg-custom-green data-[state=active]:text-white"
-          >
-            Appointments
-          </TabsTrigger>
-          <TabsTrigger 
-            value="tasks"
-            className="data-[state=active]:bg-custom-green data-[state=active]:text-white"
-          >
-            Tasks
-          </TabsTrigger>
-        </TabsList>
-        <TabsContent value="appointments">
-        <ul className="space-y-4 lg:col-span-9">
-            {appointments.length > 0 ? (
-              appointments.map((appointment) => (
-                <li key={appointment.id} className="flex justify-between items-center relative">
-                  <div>
-                  <h3 className="font-semibold">  Dr. {appointment.member.firstName}  {appointment.member.lastName}</h3>
-           
-                    <p className="text-sm text-gray-500">{appointment.service.description}</p>
-                    <p className="text-sm text-gray-500">
-                      {new Date(appointment.appointmentDate).toLocaleDateString()} - {appointment.startTime}
-                    </p>
-                    <span className={`absolute top-2 right-2 px-2 py-1 rounded-full text-xs font-semibold ${getStatusBadgeColor(appointment.status)}`}>
-                      {appointment.status}
-                    </span>
-                  </div>
-                </li>
-              ))
-            ) : (
-              <li>No upcoming appointments</li>
-            )}
-          </ul>
-          <Button 
-            variant="outline" 
-            className="w-full mt-4 text-custom-green border-custom-green hover:bg-custom-green/10"
-            onClick={() => setIsAllAppointmentsOpen(true)}
-          >
-            View All Appointments <ChevronRight className="ml-2 h-4 w-4" />
-          </Button>
-        </TabsContent>
-        <TabsContent value="tasks">
-          <ul className="space-y-4 mt-4">
-            <li className="flex justify-between items-center">
-              <div>
-                <p className="font-normal">Follow-up Call with John Doe</p>
-              </div>
-              <Button className="bg-custom-green hover:bg-custom-green/90 text-white">Complete</Button>
-            </li>
-            <li className="flex justify-between items-center">
-              <div>
-                <p className="font-normal">Update Session Notes for Jane Smith</p>
-              </div>
-              <Button className="bg-custom-green hover:bg-custom-green/90 text-white">Complete</Button>
-            </li>
-          </ul>
-          <Button variant="outline" className="w-full mt-4 text-custom-green border-custom-green hover:bg-custom-green/10">
-            View All Tasks <ChevronRight className="ml-2 h-4 w-4" />
-          </Button>
-        </TabsContent>
-      </Tabs>
-    </CardContent>
+                <CardHeader>
+                  <CardTitle className="text-xl font-semibold">Appointments and Tasks</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Tabs defaultValue="appointments" className="w-full">
+                    <TabsList className="grid w-full grid-cols-2">
+                      <TabsTrigger 
+                        value="appointments" 
+                        
+                        className="data-[state=active]:bg-custom-green data-[state=active]:text-white"
+                      >
+                        Appointments
+                      </TabsTrigger>
+                      <TabsTrigger 
+                        value="tasks"
+                        className="data-[state=active]:bg-custom-green data-[state=active]:text-white"
+                      >
+                        Tasks
+                      </TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="appointments">
+                      <ul className="space-y-4 lg:col-span-9">
+                        {appointments.length > 0 ? (
+                          appointments.map((appointment) => (
+                            <li key={appointment.id} className="flex justify-between items-center relative">
+                              <div>
+                                <h3 className="font-semibold">Dr. {appointment.member.firstName} {appointment.member.lastName}</h3>
+                                <p className="text-sm text-gray-500">{appointment.service.description}</p>
+                                <p className="text-sm text-gray-500">
+                                  {new Date(appointment.appointmentDate).toLocaleDateString()} - {appointment.startTime}
+                                </p>
+                                <span className={`absolute top-2 right-2 px-2 py-1 rounded-full text-xs font-semibold ${getStatusBadgeColor(appointment.status)}`}>
+                                  {appointment.status}
+                                </span>
+                              </div>
+                            </li>
+                          ))
+                        ) : (
+                          <li>No upcoming appointments</li>
+                        )}
+                      </ul>
+                      <Button 
+                        variant="outline" 
+                        className="w-full mt-4 text-custom-green border-custom-green hover:bg-custom-green/10"
+                        onClick={() => setIsAllAppointmentsOpen(true)}
+                      >
+                        View All Appointments <ChevronRight className="ml-2 h-4 w-4" />
+                      </Button>
+                    </TabsContent>
+                    <TabsContent value="tasks">
+                      <ul className="space-y-4 mt-4">
+                        <li className="flex justify-between items-center">
+                          <div>
+                            <p className="font-normal">Follow-up Call with John Doe</p>
+                          </div>
+                          <Button className="bg-custom-green hover:bg-custom-green/90 text-white">Complete</Button>
+                        </li>
+                        <li className="flex justify-between items-center">
+                          <div>
+                            <p className="font-normal">Update Session Notes for Jane Smith</p>
+                          </div>
+                          <Button className="bg-custom-green hover:bg-custom-green/90 text-white">Complete</Button>
+                        </li>
+                      </ul>
+                      <Button variant="outline" className="w-full mt-4 text-custom-green border-custom-green hover:bg-custom-green/10">
+                        View All Tasks <ChevronRight className="ml-2 h-4 w-4" />
+                      </Button>
+                    </TabsContent>
+                  </Tabs>
+                </CardContent>
               </Card>
 
               <AllAppointmentsView 
@@ -387,65 +489,13 @@ const ComprehensivePatientHomeScreen: React.FC<UserNameProps> = ({ name,currentM
                   </Tabs>
                 </CardContent>
               </Card>
-
-
-
             </main>
           </div>
         </div>
       )}
 
       {/* Modals */}
-      <Dialog open={isRescheduleModalOpen} onOpenChange={setIsRescheduleModalOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Reschedule Appointment</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleRescheduleSubmit}>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="doctor" className="text-right">
-                  Doctor
-                </Label>
-                <Input id="doctor" value={selectedAppointment?.service.serviceHandlers[0]?.providerUser.member.firstName || ''} className="col-span-3" readOnly />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="type" className="text-right">
-                  Type
-                </Label>
-                <Input id="type" value={selectedAppointment?.scheduleType.name || ''} className="col-span-3" readOnly />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="date" className="text-right">
-                  Date
-                </Label>
-                <Input id="date" type="date" className="col-span-3" required />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="time" className="text-right">
-                  Time
-                </Label>
-                <Select required>
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="Select a time" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="09:00">09:00 AM</SelectItem>
-                    <SelectItem value="10:00">10:00 AM</SelectItem>
-                    <SelectItem value="11:00">11:00 AM</SelectItem>
-                    <SelectItem value="14:00">02:00 PM</SelectItem>
-                    <SelectItem value="15:00">03:00 PM</SelectItem>
-                    <SelectItem value="16:00">04:00 PM</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <DialogFooter>
-              <Button type="submit">Reschedule Appointment</Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+     
 
       <Dialog open={isManageDependentsOpen} onOpenChange={setIsManageDependentsOpen}>
         <DialogContent className="sm:max-w-[90vw] sm:max-h-[90vh] overflow-y-auto">
@@ -518,6 +568,7 @@ const ComprehensivePatientHomeScreen: React.FC<UserNameProps> = ({ name,currentM
           <MakePaymentScreen />
         </DialogContent>
       </Dialog>
+ 
     </>
   )
 }
