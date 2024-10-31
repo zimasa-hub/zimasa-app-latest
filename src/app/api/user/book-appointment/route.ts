@@ -1,6 +1,13 @@
 import { NextResponse } from 'next/server'
 import axios from 'axios'
 import { getValidAccessToken } from '@/lib/utils/auth-utils';
+import { jwtDecode } from 'jwt-decode'
+import { Appointment } from '@/lib/interfaces/appointments/appointments';
+
+interface DecodedToken {
+  sub: string
+  // Add other token claims as needed
+}
 
 export async function POST(request: Request) {
   try {
@@ -50,27 +57,40 @@ export async function POST(request: Request) {
 // Handle GET request with current date
 export async function GET() {
   try {
-    let accessToken = await getValidAccessToken();
+    let accessToken = await getValidAccessToken()
+    const decodedToken = jwtDecode<DecodedToken>(accessToken)
+    const currentMemberId = decodedToken.sub
 
-    // Get the current date in 'YYYY-MM-DD' format
-    const currentDate = new Date().toISOString().split('T')[0]; // Format as 'YYYY-MM-DD'
+    const currentDate = new Date().toISOString().split('T')[0]
+    const endDate = new Date()
+    endDate.setDate(endDate.getDate() + 7)
+    const endDateString = endDate.toISOString().split('T')[0]
+
+    const appointmentsUrl = `${process.env.NEXT_PUBLIC_APPOINTMENTS_SEARCH}?userEntityId=${currentMemberId}&startDate=${currentDate}&endDate=${endDateString}`
+  
     
-    // Append the current date as a query parameter to the API URL
-    const apiUrl = `${process.env.NEXT_PUBLIC_GET_APPOINTMENTS}?localDate=${currentDate}`;
-
-    const response = await axios.get(apiUrl, {
+    const appointmentsResponse = await axios.get<{ content: Appointment[] }>(appointmentsUrl, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
     });
 
-    return NextResponse.json(response.data, { status: 200 });
+    // Sort appointments by date and time
+    const sortedAppointments = appointmentsResponse.data.content.sort((a, b) => {
+      const dateA = new Date(`${a.appointmentDate}T${a.startTime}`)
+      const dateB = new Date(`${b.appointmentDate}T${b.startTime}`)
+      return dateA.getTime() - dateB.getTime()
+    })
 
+    // Get the two most upcoming appointments
+    const upcomingAppointments = sortedAppointments.slice(0, 2)
+
+    return NextResponse.json({ appointments: upcomingAppointments }, { status: 200 })
   } catch (error: any) {
-    console.error('Error in GET /api/user/book-appointment:', error);
+    console.error('Error in GET /api/user/book-appointment:', error)
     return NextResponse.json(
-      { error: 'Failed to fetch meal goals' },
+      { error: 'Failed to fetch appointments' },
       { status: error.response?.status || 500 }
-    );
+    )
   }
 }

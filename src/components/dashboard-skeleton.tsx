@@ -7,10 +7,12 @@ export default function DashboardSkeleton() {
       <header className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
           <div className="flex items-center">
-            <Menu className="h-6 w-6 text-gray-300" />
-            <div className="w-24 h-6 bg-gray-200 animate-pulse rounded ml-4"></div>
-          </div>
           <Bell className="h-6 w-6 text-gray-300" />
+            <div className="w-24 h-6 bg-gray-200 animate-pulse rounded ml-4">
+
+            </div>
+          </div>
+          <Menu className="h-6 w-6 text-gray-300" />         
         </div>
       </header>
 

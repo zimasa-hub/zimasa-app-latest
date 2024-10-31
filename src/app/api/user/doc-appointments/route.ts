@@ -12,7 +12,7 @@ interface DecodedToken {
 
 export async function GET() {
   try {
-    const accessToken = await getValidAccessToken()
+    let accessToken = await getValidAccessToken()
     const decodedToken = jwtDecode<DecodedToken>(accessToken)
     const currentMemberId = decodedToken.sub
 
@@ -37,6 +37,7 @@ export async function GET() {
     const endDateString = endDate.toISOString().split('T')[0]
 
     const appointmentsUrl = `${process.env.NEXT_PUBLIC_APPOINTMENTS_SEARCH}?providerUserId=${providerUserId}&startDate=${currentDate}&endDate=${endDateString}`
+    
     const appointmentsResponse = await axios.get<{ content: Appointment[] }>(appointmentsUrl, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -55,7 +56,7 @@ export async function GET() {
 
     return NextResponse.json({ appointments: upcomingAppointments }, { status: 200 })
   } catch (error: any) {
-    console.error('Error in GET /api/appointments:', error)
+    console.error('Error in GET /api/user/doc-appointments:', error)
     return NextResponse.json(
       { error: 'Failed to fetch appointments' },
       { status: error.response?.status || 500 }

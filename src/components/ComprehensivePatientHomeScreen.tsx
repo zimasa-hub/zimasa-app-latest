@@ -42,11 +42,23 @@ import { UserNameProps } from '@/lib/interfaces/meals/interfaces'
 import axios from 'axios'
 import AllAppointmentsView from './all-appointments-view'
 import { Appointment } from '@/lib/interfaces/appointments/appointments'
+import { Skeleton } from './ui/skeleton'
 
 type BeforeInstallPromptEvent = Event & {
   prompt: () => void
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>
 }
+
+const AppointmentSkeleton = () => (
+  <div className="flex justify-between items-center relative animate-pulse">
+    <div className="space-y-2">
+      <Skeleton className="h-4 w-32" />
+      <Skeleton className="h-3 w-24" />
+      <Skeleton className="h-3 w-40" />
+    </div>
+    <Skeleton className="h-6 w-16 rounded-full" />
+  </div>
+)
 
 async function keycloakSessionLogOut() {
   try {
@@ -86,6 +98,7 @@ const ComprehensivePatientHomeScreen: React.FC<UserNameProps> = ({ name, current
   const [isHydrated, setIsHydrated] = useState(false)
   const [appointments, setAppointments] = useState<Appointment[]>([])
   const [isLoggingOut, setIsLoggingOut] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
 
   const { open, setOpen, toggleSidebar } = useSidebar()
@@ -133,12 +146,18 @@ const ComprehensivePatientHomeScreen: React.FC<UserNameProps> = ({ name, current
   }, [])
 
   const fetchAppointments = async () => {
+    setIsLoading(true)
     try {
-      const currentDate = new Date().toISOString().split('T')[0]
-      const response = await axios.get(`/api/user/book-appointment?localDate=${currentDate}`)
-      setAppointments(response.data.slice(0, 2))
+      const response = await fetch(`/api/user/book-appointment`)
+      if (!response.ok) {
+        throw new Error('Failed to fetch appointments')
+      }
+      const data = await response.json()
+      setAppointments(data.appointments)
     } catch (error) {
       console.error('Error fetching appointments:', error)
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -216,7 +235,6 @@ const ComprehensivePatientHomeScreen: React.FC<UserNameProps> = ({ name, current
 
   return (
     <>
-   
       <Head>
         <title>Zimasa Health Dashboard</title>
         <meta name="description" content="Manage your health and wellness with Zimasa" />
@@ -317,78 +335,84 @@ const ComprehensivePatientHomeScreen: React.FC<UserNameProps> = ({ name, current
                 </CardContent>
               </Card>
 
-              <Card className='mb-4'>
-                <CardHeader>
-                  <CardTitle className="text-xl font-semibold">Appointments and Tasks</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Tabs defaultValue="appointments" className="w-full">
-                    <TabsList className="grid w-full grid-cols-2">
-                      <TabsTrigger 
-                        value="appointments" 
-                        
-                        className="data-[state=active]:bg-custom-green data-[state=active]:text-white"
-                      >
-                        Appointments
-                      </TabsTrigger>
-                      <TabsTrigger 
-                        value="tasks"
-                        className="data-[state=active]:bg-custom-green data-[state=active]:text-white"
-                      >
-                        Tasks
-                      </TabsTrigger>
-                    </TabsList>
-                    <TabsContent value="appointments">
-                      <ul className="space-y-4 lg:col-span-9">
-                        {appointments.length > 0 ? (
-                          appointments.map((appointment) => (
-                            <li key={appointment.id} className="flex justify-between items-center relative">
-                              <div>
-                                <h3 className="font-semibold">Dr. {appointment.member.firstName} {appointment.member.lastName}</h3>
-                                <p className="text-sm text-gray-500">{appointment.service.description}</p>
-                                <p className="text-sm text-gray-500">
-                                  {new Date(appointment.appointmentDate).toLocaleDateString()} - {appointment.startTime}
-                                </p>
-                                <span className={`absolute top-2 right-2 px-2 py-1 rounded-full text-xs font-semibold ${getStatusBadgeColor(appointment.status)}`}>
-                                  {appointment.status}
-                                </span>
-                              </div>
-                            </li>
-                          ))
-                        ) : (
-                          <li>No upcoming appointments</li>
-                        )}
-                      </ul>
-                      <Button 
-                        variant="outline" 
-                        className="w-full mt-4 text-custom-green border-custom-green hover:bg-custom-green/10"
-                        onClick={() => setIsAllAppointmentsOpen(true)}
-                      >
-                        View All Appointments <ChevronRight className="ml-2 h-4 w-4" />
-                      </Button>
-                    </TabsContent>
-                    <TabsContent value="tasks">
-                      <ul className="space-y-4 mt-4">
-                        <li className="flex justify-between items-center">
-                          <div>
-                            <p className="font-normal">Follow-up Call with John Doe</p>
-                          </div>
-                          <Button className="bg-custom-green hover:bg-custom-green/90 text-white">Complete</Button>
-                        </li>
-                        <li className="flex justify-between items-center">
-                          <div>
-                            <p className="font-normal">Update Session Notes for Jane Smith</p>
-                          </div>
-                          <Button className="bg-custom-green hover:bg-custom-green/90 text-white">Complete</Button>
-                        </li>
-                      </ul>
-                      <Button variant="outline" className="w-full mt-4 text-custom-green border-custom-green hover:bg-custom-green/10">
-                        View All Tasks <ChevronRight className="ml-2 h-4 w-4" />
-                      </Button>
-                    </TabsContent>
-                  </Tabs>
-                </CardContent>
-              </Card>
+                     {/* Appointments and Tasks */}
+                     <Card className='mb-4'>
+  <CardHeader>
+    <CardTitle className="text-xl font-semibold">Appointments and Tasks</CardTitle>
+  </CardHeader>
+  <CardContent>
+    <Tabs defaultValue="appointments" className="w-full">
+      <TabsList className="grid w-full grid-cols-2">
+        <TabsTrigger 
+          value="appointments" 
+          className="data-[state=active]:bg-custom-green data-[state=active]:text-white"
+        >
+          Appointments
+        </TabsTrigger>
+        <TabsTrigger 
+          value="tasks"
+          className="data-[state=active]:bg-custom-green data-[state=active]:text-white"
+        >
+          Tasks
+        </TabsTrigger>
+      </TabsList>
+      <TabsContent value="appointments">
+        <ul className="space-y-4 lg:col-span-9">
+          {isLoading ? (
+            Array(3).fill(0).map((_, index) => (
+              <li key={index} className="mb-4">
+                <AppointmentSkeleton />
+              </li>
+            ))
+          ) : appointments.length > 0 ? (
+            appointments.map((appointment) => (
+              <li key={appointment.id} className="flex justify-between items-center relative">
+                <div>
+                  <h3 className="font-semibold">Dr. {appointment.member.firstName} {appointment.member.lastName}</h3>
+                  <p className="text-sm text-gray-500">{appointment.service.description}</p>
+                  <p className="text-sm text-gray-500">
+                    {new Date(appointment.appointmentDate).toLocaleDateString()} - {appointment.startTime}
+                  </p>
+                  <span className={`absolute top-2 right-2 px-2 py-1 rounded-full text-xs font-semibold ${getStatusBadgeColor(appointment.status)}`}>
+                    {appointment.status}
+                  </span>
+                </div>
+              </li>
+            ))
+          ) : (
+            <li>No upcoming appointments</li>
+          )}
+        </ul>
+        <Button 
+          variant="outline" 
+          className="w-full mt-4 text-custom-green border-custom-green hover:bg-custom-green/10"
+          onClick={() => setIsAllAppointmentsOpen(true)}
+        >
+          View All Appointments <ChevronRight className="ml-2 h-4 w-4" />
+        </Button>
+      </TabsContent>
+      <TabsContent value="tasks">
+        <ul className="space-y-4 mt-4">
+          <li className="flex justify-between items-center">
+            <div>
+              <p className="font-normal">Follow-up Call with John Doe</p>
+            </div>
+            <Button className="bg-custom-green hover:bg-custom-green/90 text-white">Complete</Button>
+          </li>
+          <li className="flex justify-between items-center">
+            <div>
+              <p className="font-normal">Update Session Notes for Jane Smith</p>
+            </div>
+            <Button className="bg-custom-green hover:bg-custom-green/90 text-white">Complete</Button>
+          </li>
+        </ul>
+        <Button variant="outline" className="w-full mt-4 text-custom-green border-custom-green hover:bg-custom-green/10">
+          View All Tasks <ChevronRight className="ml-2 h-4 w-4" />
+        </Button>
+      </TabsContent>
+    </Tabs>
+  </CardContent>
+</Card>
 
               <AllAppointmentsView 
                 isOpen={isAllAppointmentsOpen} 
