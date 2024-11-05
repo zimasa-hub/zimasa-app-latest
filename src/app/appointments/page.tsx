@@ -11,7 +11,7 @@ import { PageableResponse } from '@/lib/interfaces/Pageable/pagination'
 
 interface DecodedToken {
   sub: string
-  // Add other token claims as needed
+  
 }
 
 
