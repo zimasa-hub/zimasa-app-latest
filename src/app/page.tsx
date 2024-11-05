@@ -4,6 +4,7 @@ import { SetDynamicRoute } from '@/lib/utils/setDynamicRoute';
 import { getValidAccessToken, getServerSession } from '@/lib/utils/auth-utils';
 import LoginFunctionality from '@/components/LoginFunctionality';
 import { LoginScreensComponent } from '@/components/login-screens';
+import { redirect } from 'next/navigation';
 
 export const metadata: Metadata = {
   title: 'Zimasa Health Platform',
@@ -36,6 +37,9 @@ export default async function Home() {
   if (!isValidSession) {
     return <LoginScreensComponent />;
   }
+  else if (isValidSession && error===null) {
+    redirect('/dashboard');
+  }
 
   return (
     <main className="min-h-screen bg-white">
@@ -58,3 +62,5 @@ export default async function Home() {
     </main>
   );
 }
+
+
