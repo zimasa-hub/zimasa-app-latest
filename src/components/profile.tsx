@@ -54,7 +54,7 @@ export default function UserProfile({ initialUserData = {} as UserData }) {
   }
 
   return (
-    <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md my-10">
+    <div className="max-w-md mx-auto p-6 min-h-screen bg-white rounded-lg shadow-md my-10">
       <div className="flex flex-col items-center mb-6">
         <Dialog open={isImageModalOpen} onOpenChange={setIsImageModalOpen}>
           <DialogTrigger asChild>

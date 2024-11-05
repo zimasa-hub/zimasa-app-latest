@@ -1,7 +1,6 @@
 // layout.tsx
 import { ReactNode } from 'react';
 import BottomNav from '@/app/NavBars/service-provider-bottomBar';
-import ConsumerBottomNav from '../NavBars/consumer-bottomBar';
 
 
 
@@ -9,7 +8,7 @@ export default function Layout({ children }: { children: ReactNode }) {
   return (
     <div className=" bg-white relative min-h-screen overflow-hidden "> 
       {children}
-      <ConsumerBottomNav />
+      {/* <BottomNav /> */}
     </div>
   );
 }

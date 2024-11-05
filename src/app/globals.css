@@ -4,7 +4,7 @@
 
 body {
   font-family: Arial, Helvetica, sans-serif;
-  background-color: rgb(223, 245, 216); /* Use semi-transparent orange as background */
+  background-color: rgb(255, 255, 255); /* Use semi-transparent orange as background */
 }
 
 @layer utilities {

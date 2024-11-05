@@ -20,9 +20,6 @@ export default async function Dashboard() {
   let isValidSession = false;
   let currentMemberId: string | null = null
 
-
-
-
   try {
     const session = await getServerSession();
     const accessToken = await getValidAccessToken()
@@ -53,7 +50,6 @@ export default async function Dashboard() {
      
         <DashboardClient 
           name={name} 
-          isProvider={isProvider} 
           error={error}
           currentMemberId={currentMemberId}
         >

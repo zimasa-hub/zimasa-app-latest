@@ -23,9 +23,6 @@ export interface MealTiming {
   
  export interface UserNameProps {
     name: string | null;
-    currentMode?: string | null;
-    isProvider?: boolean | null;
-    onModeSwitch?:() => void;
     currentMemberId: string | null;
   
   }

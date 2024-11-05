@@ -56,7 +56,8 @@ export default function BottomNav() {
             )}`}
             onClick={handleDashboardClick}
           >
-            <div className="absolute -top-3 transform -translate-y-2/3 shadow-md rounded-md bg-white p-2" style={{ boxShadow: "0px 5px 15px rgba(0, 128, 128, 0.5)" }}>
+            {/* <div className="absolute -top-3 transform -translate-y-2/3 shadow-md rounded-md bg-white p-2" style={{ boxShadow: "0px 5px 15px rgba(0, 128, 128, 0.5)" }}> */}
+            <div   className={`flex flex-col items-center`}>
               <div className="flex items-center justify-center">
                 <Grid className="w-8 h-6 hover:text-custom-green" />
               </div>

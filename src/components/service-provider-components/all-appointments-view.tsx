@@ -346,11 +346,6 @@ export default function AllAppointmentsView({ isOpen, onClose, currentMemberId }
                         <Check className="w-4 h-4 mr-2" />
                         Confirm
                       </Button>
-
-                 
-
-                     
-                    
                   </div>
                 )}
 

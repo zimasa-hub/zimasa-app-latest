@@ -7,6 +7,7 @@ import { jwtDecode } from 'jwt-decode'
 import { PaymentMethod, ServiceType, Service } from '@/lib/interfaces/services/services'
 import UserProfile from '@/components/profile'
 import { PageableResponse } from '@/lib/interfaces/Pageable/pagination'
+import { ChatInterface } from '@/components/chat-interface'
 
 
 export default async function Home() {
@@ -15,7 +16,7 @@ export default async function Home() {
     <main className="min-h-screen bg-white">
 
       <ErrorBoundary>
-        <UserProfile />
+       <ChatInterface />
       </ErrorBoundary>
     </main>
   )

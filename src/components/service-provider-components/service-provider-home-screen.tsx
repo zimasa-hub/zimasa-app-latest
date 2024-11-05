@@ -20,8 +20,10 @@ import Sidebar from '@/app/NavBars/consumer-sideBar'
 import { Appointment } from '@/lib/interfaces/appointments/appointments'
 import { DoctorsDataResponse } from '@/lib/interfaces/providers/providers'
 import AllAppointmentsView from './all-appointments-view'
+import { SidebarTrigger } from '../ui/sidebar'
+import ReusableSidebar from '@/app/NavBars/Reusable-Sidebar'
 
-const ServiceProviderHomeScreenComponent: React.FC<UserNameProps> = ({ name,currentMode, isProvider: initialIsProvider ,onModeSwitch,currentMemberId }) => {
+const ServiceProviderHomeScreenComponent: React.FC<UserNameProps> = ({ name, currentMemberId }) => {
   
   console.log("SUB : ", currentMemberId)
 
@@ -96,34 +98,23 @@ const ServiceProviderHomeScreenComponent: React.FC<UserNameProps> = ({ name,curr
 
   return (
     <div className="container mx-auto flex flex-col min-h-screen">
- <Sidebar 
- isOpen={isSidebarOpen} 
- name={name}
- currentMode={currentMode} 
- isProvider={initialIsProvider} 
- onModeSwitch={onModeSwitch}/>
 
-            {isSidebarOpen && (
-              <div
-                className="fixed inset-0 bg-black bg-opacity-50 z-40"
-                onClick={() => setIsSidebarOpen(false)}
-              />
-            )}
 
             <div className="container mx-auto p-4 space-y-4">
  {/* Top Bar */}
- <header className="bg-white ">
-        <div className="container mx-auto px-4 py-3 flex justify-between items-center">
+ <header className="flex justify-between items-center p-2 border-b bg-white">
+              <Button variant="ghost" size="icon">
+                <Bell className="h-5 w-5" />
+                <span className="sr-only">Notifications</span>
+              </Button>
+              <h1 className="text-lg font-semibold">Dashboard</h1>
+              <SidebarTrigger />
+            </header>
 
-        <Button variant="ghost" size="icon">
-            <Bell className="h-5 w-5" />
-          </Button>
-          <h1 className="text-xl font-semibold">Dashboard</h1>
-          <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
-            <Menu className="h-6 w-6" />
-          </Button>
-        </div>
-      </header>
+            <ReusableSidebar
+          name={name}
+          
+        />
      
 
       <h1 className="text-xl font-semibold">Hello, Dr. {name}</h1>

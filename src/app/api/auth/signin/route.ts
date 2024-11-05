@@ -9,10 +9,16 @@ interface KeycloakJwtPayload {
   realm_access: {
     roles: string[];
   };
+  resource_access: {
+    'zimasa-consumer-api': {
+      roles: string[];
+    };
+  };
   name: string;
   email: string;
   exp: number;
 }
+
 
 declare global {
   var sessions: Map<string, any>;
@@ -47,6 +53,8 @@ export async function POST(request: Request) {
       const nowTimeStamp = Math.floor(Date.now() / 1000);
       const decoded = jwtDecode(data.access_token) as KeycloakJwtPayload;
 
+     
+
       const token = {
         decoded,
         access_token: data.access_token,
@@ -61,7 +69,7 @@ export async function POST(request: Request) {
         access_token: encrypt(token.access_token),
         id_token: encrypt(token.id_token),
         refresh_token: encrypt(token.refresh_token),
-        roles: token.decoded.realm_access.roles,
+        roles: token.decoded.resource_access['zimasa-consumer-api'].roles ,
         user: {
           name: token.decoded.name,
           email: token.decoded.email,
@@ -89,6 +97,7 @@ export async function POST(request: Request) {
     user: {
       name: token.decoded.name,
       email: token.decoded.email,
+      roles: token.decoded.resource_access['zimasa-consumer-api'].roles,
     },
   });
 

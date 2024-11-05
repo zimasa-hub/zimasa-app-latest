@@ -1,20 +1,29 @@
-# Use the official Node.js 18 image as a parent image
-FROM node:18-alpine
-
-# Set the working directory
+# Stage 1: Install dependencies
+FROM node:18-alpine AS dependencies
 WORKDIR /app
 
-# Copy package.json and package-lock.json (if available)
+# Copy only the package files to install dependencies
 COPY package*.json ./
-
-# Install dependencies
 RUN npm ci
 
-# Copy the rest of your app's source code
+# Stage 2: Build the application
+FROM node:18-alpine AS builder
+WORKDIR /app
+
+# Copy dependencies from the previous stage
+COPY --from=dependencies /app/node_modules ./node_modules
+# Copy the rest of your application code
 COPY . .
 
-# Build your Next.js app (temporarily disable ESLint)
+# Temporarily disable ESLint during the build process
 RUN npm run build -- --no-lint
+
+# Stage 3: Production image
+FROM node:18-alpine AS runner
+WORKDIR /app
+
+# Copy the built application from the builder stage
+COPY --from=builder /app ./
 
 # Expose the port Next.js runs on
 EXPOSE 3000

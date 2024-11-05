@@ -43,6 +43,7 @@ import axios from 'axios'
 import AllAppointmentsView from './all-appointments-view'
 import { Appointment } from '@/lib/interfaces/appointments/appointments'
 import { Skeleton } from './ui/skeleton'
+import ReusableSidebar from '@/app/NavBars/Reusable-Sidebar'
 
 type BeforeInstallPromptEvent = Event & {
   prompt: () => void
@@ -79,7 +80,7 @@ async function keycloakSessionLogOut() {
   }
 }
 
-const ComprehensivePatientHomeScreen: React.FC<UserNameProps> = ({ name, currentMode, isProvider: initialIsProvider, onModeSwitch }) => {
+const ComprehensivePatientHomeScreen: React.FC<UserNameProps> = ({ name }) => {
   const [healthScore, setHealthScore] = useState(75)
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null)
   const [isInstalled, setIsInstalled] = useState(false)
@@ -227,7 +228,7 @@ const ComprehensivePatientHomeScreen: React.FC<UserNameProps> = ({ name, current
   const navItems = [
     { icon: User, label: 'Profile', href: '/profile' },
     { icon: BookOpen, label: 'Topics', href: '/topics' },
-    { icon: MessageSquare, label: 'Messages', href: '/messages' },
+    { icon: MessageSquare, label: 'Messages', href: '/chat' },
     { icon: Bell, label: 'Notifications', href: '/notifications' },
     { icon: Bookmark, label: 'Bookmarks', href: '/bookmarks' },
   ]
@@ -257,73 +258,12 @@ const ComprehensivePatientHomeScreen: React.FC<UserNameProps> = ({ name, current
               <h1 className="text-lg font-semibold">Dashboard</h1>
               <SidebarTrigger />
             </header>
-            {open && (
-              <>
-              
-              </>
-            )}
-            <Sidebar side="right">
-              <SidebarHeader className="p-4 border-b">
-                <div className="flex items-center">
-                  <div className="relative">
-                    <img
-                      src="/male_doc.png?height=48&width=48"
-                      alt="User avatar"
-                      className="w-12 h-12 rounded-full border-2 border-primary"
-                    />
-                    <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></span>
-                  </div>
-                  <div className="ml-4">
-                    <h2 className="font-semibold text-lg">{name || "Guest"}</h2>
-                    <p className="text-sm text-muted-foreground">Zimasa Member</p>
-                  </div>
-                </div>
-              </SidebarHeader>
-              <SidebarContent>
-                <ScrollArea className="flex-grow">
-                  <nav className="p-4">
-                    <ul className="space-y-2">
-                      {navItems.map((item, index) => (
-                        <li key={index}>
-                          <Button
-                            variant="ghost"
-                            className="w-full justify-start text-base font-medium"
-                            onClick={() => handleNavigation(item.href)}
-                          >
-                            <item.icon className="mr-3 h-5 w-5" />
-                            {item.label}
-                          </Button>
-                        </li>
-                      ))}
-                    </ul>
-                  </nav>
-                </ScrollArea>
-              </SidebarContent>
-              <SidebarFooter>
-                {initialIsProvider && (
-                  <div className="p-4 border-t">
-                    <Button
-                      onClick={onModeSwitch}
-                      className="w-full bg-white border-[0.1rem] border-primary text-primary hover:bg-primary/10 rounded-md h-8 flex items-center justify-center"
-                    >
-                      Switch to {currentMode === 'provider' ? 'Consumer' : 'Provider'} Mode 
-                    </Button>
-                  </div>
-                )}
-                <div className="p-4 border-t">
-                  <Button 
-                    variant="outline"
-                    onClick={handleLogout}
-                    disabled={isLoggingOut}
-                    className="w-full justify-start text-base font-medium"
-                  >
-                    <LogOut className="mr-3 h-5 w-5" />
-                    {isLoggingOut ? 'Logging out...' : 'Log out'}
-                  </Button>
-                </div>
-              </SidebarFooter>
-            </Sidebar>
+           
 
+
+            <ReusableSidebar
+          name={name}
+        />
             <main className="w-auto p-4">
               <h3 className="text-lg font-semibold mb-2">Welcome, {name || "Guest"}</h3>
               <Card className="mb-4">
